@@ -1,8 +1,8 @@
 # What this is
 
 This repository has 2 things that help with multi-version support in Unreal code plugins:
-- The `VersionMacros.h` header file
-- Prebuild scripts that work around preprocessor limitations in UnrealHeaderTool
+- The [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) header file
+- [Prebuild scripts](Resources/BuildScripts) that work around preprocessor limitations in UnrealHeaderTool
 
 Both are optional and independent of one another.
 
@@ -24,7 +24,7 @@ The `VersionMacros.uplugin` file has an example of using the prebuild scripts, w
 
 `VersionMacros.h` provides the following macros for arbitrary engine version comparisons.
 
-```c++
+```
 UE_VERSION_BELOW(major, minor)
 UE_VERSION_ABOVE(major, minor)
 UE_VERSION_EQUAL(major, minor)

@@ -22,7 +22,7 @@ import re
 import PrebuildConfig
 
 # Required Environment Variables
-# You must be sure your *.uplugin file sets values these before running the script
+# You must be sure your *.uplugin file sets these values before running the script
 # An example of doing this can be found in VersionMacros.uplugin
 EngineDir = os.environ['EngineDir']
 PluginDir = os.environ['PluginDir']
@@ -47,9 +47,8 @@ def do_comparison(version, compare):
     # This works around an edge case in UE4 where the minor version exceeded 9
     # For example UE 4.9 is a lower version than UE 4.27, but a numeric comparison would evaluate to the opposite!
     version_as_int = 0
-    if type(version) == str:
-        [major, minor] = re.split(r'\.', version, 1)
-        version_as_int = version_to_int(major, minor)
+    [major, minor] = re.split(r'\.', version, 1)
+    version_as_int = version_to_int(major, minor)
     # Old versions of Unreal use Python 2, which doesn't have match statements, so we use if-else here
     if compare == '==':
         return EngineVersionAsInt == version_as_int
@@ -70,7 +69,7 @@ def replace_line_in_file(file_path, line):
     match = re.search(r'#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', line)
     changed = False
     new_line = line
-    # Search a table of user-defined macros that are associated with a version and comparison
+    # Search the dictionary of user-defined macros that are associated with a version and comparison
     if match:
         current_literal_expression = int(match.group(1))
         is_negated = match.group(2) == '!'

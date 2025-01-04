@@ -43,10 +43,11 @@ def do_comparison(version, compare):
     # If version is a non-string (i.e. float or decimal) convert to string so we can separate the major/minor versions
     if type(version) != str:
         version = str(version)
+    if '.' not in version:
+        version += ".0"
     # Split version into major/minor integers so we can do a polynomial comparison
     # This works around an edge case in UE4 where the minor version exceeded 9
     # For example UE 4.9 is a lower version than UE 4.27, but a numeric comparison would evaluate to the opposite!
-    version_as_int = 0
     [major, minor] = re.split(r'\.', version, 1)
     version_as_int = version_to_int(major, minor)
     # Old versions of Unreal use Python 2, which doesn't have match statements, so we use if-else here

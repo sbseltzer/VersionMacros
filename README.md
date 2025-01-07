@@ -108,7 +108,7 @@ Here's how it works:
 1. When you start a build, your `.uplugin` file will execute its `"PreBuildSteps"` in your host platform shell.
 2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them.
 3. `PreBuildSteps` executes the script contained in `Resources/BuildScripts/<HostPlatform>/`, which acts as a shim for the `Prebuild.py` file by deducing the location of the Python executable that's bundled with Unreal.
-4. `Prebuild.py` performs macro replacements according to your settings in `PrebuildConfig.py.
+4. `Prebuild.py` performs macro replacements according to your settings in `PrebuildConfig.py`.
 
 The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
 
@@ -218,11 +218,13 @@ Please file an issue if you run into a platform where this doesn't work.
 
 # Engine Version Support
 
-I've tested this in UE versions 4.17 to 5.x, but it should work in lower versions as well.
+I've tested this in UE versions 4.12 to 5.x, but it should work in lower versions as well.
 
 UE 4.8 and lower do not bundle a Python executable, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
 
 I'm unable to test UE 4.9 and lower since Visual Studio 2013 is no longer available to download from official sources.
+
+I'm unable to test UE 4.10 and 4.11 since I couldn't find a Visual Studio 2015 install that doesn't include Update 3 (which breaks builds on those versions of UE). 
 
 Please file an issue if you run into a version of Unreal where this doesn't work.
 

@@ -8,4 +8,8 @@ if [ "$MajorVersion" -gt "4" ] || [ "$MinorVersion" -ge "26" ]; then
   PythonVersion="3"
 fi
 PythonExe="$EngineDir/Binaries/ThirdParty/Python$PythonVersion/Linux/bin/python$PythonVersion"
+# Fall back to Python executable in environment PATH.
+if [ ! -f "$PythonExe" ]; then
+    PythonExe="python"
+fi
 $PythonExe "$PluginDir/Resources/BuildScripts/Prebuild.py"

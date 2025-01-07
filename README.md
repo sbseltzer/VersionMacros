@@ -104,7 +104,13 @@ To add the build scripts to your own plugin:
 2. Copy the `"PreBuildSteps"` section from `VersionMacros.uplugin` to your `.uplugin` file.
 3. Modify the prebuild scripts as needed for your plugin. Use the `PrebuildConfig.py` file to customize to your project needs.
 
-The benefit of using `PreBuildSteps` for this is your plugin can safely be copy/pasted from a newer version of Unreal to an older one and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
+Here's how it works:
+1. When you start a build, your `.uplugin` file will execute its `"PreBuildSteps"` in your host platform shell.
+2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them.
+3. `PreBuildSteps` executes the script contained in `Resources/BuildScripts/<HostPlatform>/`, which acts as a shim for the `Prebuild.py` file by deducing the location of the Python executable that's bundled with Unreal.
+4. `Prebuild.py` performs macro replacements according to your settings in `PrebuildConfig.py.
+
+The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
 
 We'll review some specific use-cases for these prebuild scripts next.
 
@@ -205,21 +211,20 @@ There are some options at the bottom that generate some helpful macro replacemen
 Prebuild script platforms tested so far:
 
 - [x] Win64
-- [ ] Mac
+- [x] Mac
 - [ ] Linux
 
 Please file an issue if you run into a platform where this doesn't work.
 
 # Engine Version Support
 
-I've tested this in UE versions 4.22 to 5.x, but it should work in lower versions as well.
+I've tested this in UE versions 4.17 to 5.x, but it should work in lower versions as well.
+
+UE 4.8 and lower do not bundle a Python executable, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
+
+I'm unable to test UE 4.9 and lower since Visual Studio 2013 is no longer available to download from official sources.
 
 Please file an issue if you run into a version of Unreal where this doesn't work.
-
-# Areas for improvement
-
-1. Make `Prebuild.py` recognize and evaluate the same `UE_VERSION_*` macros defined in `VersionMacros.h`.
-2. Add a script to automate installing `VersionMacros.h` and/or `BuildScripts` to another plugin.
 
 # Closing Remarks
 

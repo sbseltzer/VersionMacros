@@ -9,12 +9,14 @@ public class VersionMacros : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicDependencyModuleNames.Add("Core");
+		PrivateDependencyModuleNames.Add("CoreUObject");
 	}
 #else
 	// NOTE: This is flagged as obsolete in 4.16 but the UE_*_OR_LATER C# macros weren't introduced until 4.17
 	public VersionMacros(TargetInfo Target)
 	{
 		PublicDependencyModuleNames.Add("Core");
+		PrivateDependencyModuleNames.Add("CoreUObject");
 	}
 #endif
 }

@@ -95,9 +95,11 @@ static bool IsABot(APlayerState* PS)
 
 ## PreBuild Scripts
 
-A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "magic" macros in preprocessor logic.
+A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "magic" macros in preprocessor logic. Prebuild scripts allow you to work around this by taking advantage of a quirk in UnrealHeaderTool that allows `#if 1` and `#if 0` to wrap those "magic" macros.
 
-If you're not sure what that means, you probably don't need these prebuild scripts for your project.
+`PrebuildConfig.py` has a section where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO` and the prebuild script will automatically change it between `0` and `1` depending on your engine version.
+
+It also includes an option for backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 support.
 
 To add the build scripts to your own plugin:
 1. Copy the `Resources/BuildScripts/` folder to your plugin `Resources/` folder.
@@ -106,9 +108,12 @@ To add the build scripts to your own plugin:
 
 Here's how it works:
 1. When you start a build, your `.uplugin` file will execute its `"PreBuildSteps"` in your host platform shell.
-2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them.
-3. `PreBuildSteps` executes the script contained in `Resources/BuildScripts/<HostPlatform>/`, which acts as a shim for the `Prebuild.py` file by deducing the location of the Python executable that's bundled with Unreal.
-4. `Prebuild.py` performs macro replacements according to your settings in `PrebuildConfig.py`.
+2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them. The relevant variables are `EngineDir` and `PluginDir`.
+3. `PreBuildSteps` executes the shim script contained in `Resources/BuildScripts/<HostPlatform>/`. On Windows this is a Powershell script. On Mac/Linux it's a Bash script.
+4. The shim script first deduces your Unreal Engine version using the `Build.version` file in your engine directory.
+5. The shim script then deduces the bundled Python executable location for your engine version. If it can't be found (i.e. UE 4.8 or lower), it attempts to fall back to whatever Python executable you have installed.
+6. The shim script then executes `Prebuild.py`.
+7. `Prebuild.py` performs text replacements in your plugin source files according to your engine version and your settings in `PrebuildConfig.py`.
 
 The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
 
@@ -146,6 +151,9 @@ MacroReplacements = {
     # More of these "fake" macro configurations can be added
 }
 ```
+The above configuration will do the following:
+- Automatically replace `#if 0 // SHOULD_MY_PROPERTY_EXIST` with `#if 1 // SHOULD_MY_PROPERTY_EXIST` inside header files anytime I start a build on Unreal 5.5 and later.
+- Automatically replace `#if 1 // SHOULD_MY_PROPERTY_EXIST` with `#if 0 // SHOULD_MY_PROPERTY_EXIST` inside header files anytime I start a build on Unreal 5.4 and earlier.
 
 ### Example 2: Backporting a modern UCLASS
 
@@ -187,7 +195,7 @@ MacroReplacements = {
 ```
 The above configuration will do the following:
 - Automatically replace `#if 0 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` with `#if 1 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` inside the `WorldSubsystemCompat.h` file anytime I start a build on Unreal 4.26 and lower.
-- Automatically replace `#if 1 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` with `#if 0 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` inside the `WorldSubsystemCompat.h` file anytime I start a build on Unreal 4.27 and greater.
+- Automatically replace `#if 1 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` with `#if 0 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` inside the `WorldSubsystemCompat.h` file anytime I start a build on Unreal 4.27 and higher.
 
 Some other possible use-cases:
 - Adding version-specific `UFUNCTION`/`USTRUCT` declarations
@@ -222,9 +230,9 @@ I've tested this in UE versions 4.12 to 5.x, but it should work in lower version
 
 UE 4.8 and lower do not bundle a Python executable, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
 
-I'm unable to test UE 4.9 and lower since Visual Studio 2013 is no longer available to download from official sources.
+I'm unable to test UE 4.9 and lower since I was unable to install Visual Studio 2013 on my system for some reason.
 
-I'm unable to test UE 4.10 and 4.11 since I couldn't find a Visual Studio 2015 install that doesn't include Update 3 (which breaks builds on those versions of UE). 
+I'm unable to test UE 4.10 and 4.11 since I was unable to find a Visual Studio 2015 installer that doesn't include Update 3 (which breaks builds on those versions of UE).
 
 Please file an issue if you run into a version of Unreal where this doesn't work.
 

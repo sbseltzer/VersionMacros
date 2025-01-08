@@ -67,9 +67,28 @@ def do_comparison(version, compare):
     exit(1)
 
 def replace_line_in_file(file_path, line):
-    match = re.search(r'#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', line)
     changed = False
     new_line = line
+    if PrebuildConfig.AllowObjectPtrReplacements:
+        should_replace = True
+        if (PrebuildConfig.MatchAllSourceFiles and len(PrebuildConfig.MatchAllSourceFiles) > 0):
+            should_replace = False
+            for pattern in PrebuildConfig.MatchAllSourceFiles:
+                if (re.match(pattern, file_path)):
+                    should_replace = True
+                    break
+        if should_replace:
+            if do_comparison("5.0", "<"):
+                object_ptr_match = re.search(r'TObjectPtr<([\s\w_:]+)>', new_line)
+                if object_ptr_match:
+                    new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
+                    changed = True
+            else:
+                raw_object_ptr_match = re.search(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
+                if raw_object_ptr_match:
+                    new_line = re.sub(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<\1>', new_line)
+                    changed = True
+    match = re.search(r'#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', new_line)
     # Search the dictionary of user-defined macros that are associated with a version and comparison
     if match:
         current_literal_expression = int(match.group(1))
@@ -93,11 +112,11 @@ def replace_line_in_file(file_path, line):
                 exit(1)
             if (do_comparison(replacement_info['Version'], replacement_info['Compare']) != is_negated):
                 if (current_literal_expression == 0):
-                    new_line = re.sub(r'#if 0(\s*)//(\s*)(!?\w+)', r'#if 1\1//\2\3', line)
+                    new_line = re.sub(r'#if 0(\s*)//(\s*)(!?\w+)', r'#if 1\1//\2\3', new_line)
                     changed = True
             else:
                 if (current_literal_expression == 1):
-                    new_line = re.sub(r'#if 1(\s*)//(\s*)(!?\w+)', r'#if 0\1//\2\3', line)
+                    new_line = re.sub(r'#if 1(\s*)//(\s*)(!?\w+)', r'#if 0\1//\2\3', new_line)
                     changed = True
         if not replacement_info:
             print("Failed to find Macro Replacement Info for " + macro_text)

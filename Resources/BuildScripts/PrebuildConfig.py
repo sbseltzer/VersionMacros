@@ -9,6 +9,11 @@ ProcessDirs = [
     "Source"
 ]
 
+# Default file patterns to perform replacements in
+MatchHeaderFiles = [r'.*\.h', r'.*\.hpp']
+MatchImplementationFiles = [r'.*\.cpp', r'.*\.inl', r'.*\.c']
+MatchAllSourceFiles = MatchHeaderFiles + MatchImplementationFiles
+
 # Custom "fake" macro replacements
 # Use this to overcome preprocessor limitations in UnrealHeaderTool
 # For example, if you wanted to wrap a UPROPERTY in a preprocessor #if/#endif block
@@ -19,9 +24,12 @@ MacroReplacements = {
     "TEST_MACRO": {
         "Version": "5.0", # Version of Unreal to compare against
         "Compare": '<=', # Comparison to make (in this case it will evaluate EngineVersion <= 5.0)
-        "MatchFiles": [r'.*/VersionMacros.cpp'] # (Optional) Files to restrict replacements to
+        "MatchFiles": [r'.*/VersionMacros.cpp', r'.*/Test.h'] # (Optional) Files to restrict replacements to
     },
 }
+
+# Whether to replace TObjectPtr<T> with T* on UE4 builds (includes annotation for reversibility)
+AllowObjectPtrReplacements = True
 
 #
 # Below is an example of programmatically generating replacement info for a list of Unreal versions.
@@ -32,8 +40,6 @@ MacroReplacements = {
 AllowVersionOrLaterReplacements = True
 # Whether to do text replacements for lines of the form "#if <1 or 0> // UE_<MajorVersion>_<MinorVersion>_OR_EARLIER"
 AllowVersionOrEarlierReplacements = True
-# Default file patterns to perform replacements in
-DefaultMatchFiles = [r'.*\.h']
 # Generate fake macro text replacement configurations for UE_*_OR_LATER & UE_*_OR_EARLIER macros
 if AllowVersionOrLaterReplacements or AllowVersionOrEarlierReplacements:
     # Feel free to remove versions you don't intend to support from this list to improve prebuild performance
@@ -45,11 +51,11 @@ if AllowVersionOrLaterReplacements or AllowVersionOrEarlierReplacements:
             MacroReplacements["UE_" + major + "_" + minor + "_OR_LATER"] = {
                 "Version": version,
                 "Compare": '>=',
-                "MatchFiles": DefaultMatchFiles
+                "MatchFiles": MatchHeaderFiles
             }
         if AllowVersionOrEarlierReplacements:
             MacroReplacements["UE_" + major + "_" + minor + "_OR_EARLIER"] = {
                 "Version": version,
                 "Compare": '<=',
-                "MatchFiles": DefaultMatchFiles
+                "MatchFiles": MatchHeaderFiles
             }

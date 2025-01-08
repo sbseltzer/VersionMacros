@@ -18,18 +18,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// NOTE: This file is only for module compilation & testing purposes. Do not copy it to your project!
+
 #include "VersionMacros.h"
+#include "Test.h"
 #include "Modules/ModuleManager.h"
 
-// NOTE: This file is only for testing purposes. Do not copy it to your project!
-
-// Compile-time sanity tests
-#ifndef UE_VERSION_COMPILE_TIME_TESTS
-#define UE_VERSION_COMPILE_TIME_TESTS 1
-#endif
-
 #if UE_VERSION_COMPILE_TIME_TESTS
-#define compile_time_assert(b) static_assert((b), "Compile time assertion failed: "#b)
 
 //==============================================================================================
 // Test VersionMacros.h
@@ -145,48 +140,23 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, <=, 4,22,3));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, <=, 4,21,2));
 
 //==============================================================================================
-// Test Prebuild Scripts
-// If any of the following asserts fail, it means something is wrong with the prebuild scripts
+// Test Prebuild Scripts (TObjectPtr replacements)
+// If the following fails to compile, it means something is wrong with the prebuild scripts
 //==============================================================================================
 
-#define UE_5_0_OR_LATER UE_VERSION_MINIMUM(5, 0)
-#if 1 // UE_5_0_OR_LATER
-compile_time_assert(UE_5_0_OR_LATER);
-#else
-compile_time_assert(!UE_5_0_OR_LATER);
-#endif
-#if 0 // !UE_5_0_OR_LATER
-compile_time_assert(!UE_5_0_OR_LATER);
-#else
-compile_time_assert(UE_5_0_OR_LATER);
-#endif
+// Verify it works on static variable declarations
+static TObjectPtr<UObject> TestVariable1;
+static TObjectPtr<UObject> TestVariable2;
+static const TObjectPtr<UObject> TestVariable3;
+// Verify it works inside function declarations
+static TObjectPtr<UObject> FuncTest(TObjectPtr<UObject>& Arg1, const TObjectPtr<UObject> Arg2) { return Arg1; }
+static const TObjectPtr<UObject> FuncTest2(TObjectPtr<UObject> Arg1, const TObjectPtr<UObject>& Arg2) { return Arg2; }
+// Verify it works inside delegate macros
+#include "Delegates/DelegateCombinations.h"
+DECLARE_MULTICAST_DELEGATE_TwoParams(FTestObjectPtrDelegate1, const TObjectPtr<UObject>, TObjectPtr<UObject>);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FTestObjectPtrDelegate2, const TObjectPtr<UObject>, TObjectPtr<UObject>);
+// NOTE: DECLARE_DYNAMIC_MULTICAST_DELEGATE is not relevant to test as it's not allowed to take TObjectPtr as a parameter type
 
-#define UE_5_4_OR_LATER UE_VERSION_MINIMUM(5, 4)
-#if 1 // UE_5_4_OR_LATER
-compile_time_assert(UE_5_4_OR_LATER);
-#else
-compile_time_assert(!UE_5_4_OR_LATER);
-#endif
-#if 0 // !UE_5_4_OR_LATER
-compile_time_assert(!UE_5_4_OR_LATER);
-#else
-compile_time_assert(UE_5_4_OR_LATER);
-#endif
-
-#define TEST_MACRO UE_VERSION_MAXIMUM(5, 0)
-#if 0 // TEST_MACRO
-compile_time_assert(TEST_MACRO);
-#else
-compile_time_assert(!TEST_MACRO);
-#endif
-#if 1 // !TEST_MACRO
-compile_time_assert(!TEST_MACRO);
-#else
-compile_time_assert(TEST_MACRO);
-#endif
-
-#undef compile_time_assert
-#undef UE_VERSION_COMPILE_TIME_TESTS
 #endif
 
 // Bare minimum code plugin

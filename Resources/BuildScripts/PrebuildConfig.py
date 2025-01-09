@@ -5,8 +5,10 @@ from re import split
 # Modify this value to match the encoding your project uses if you run into Python errors that mention decoding
 # Some common choices: utf-8, utf-16, iso-8859-1
 SourceFileEncoding = 'utf-8'
+
 # Whether to ignore encoding errors when opening files
-# Avoid changing this unless you understand the possible consequences
+# Any characters that fail to decode will be removed from source files that get modified by these prebuild scripts
+# While this is often safe/harmless, be sure to use version control so you can see whether anything important changed
 IgnoreEncodingErrors = False
 
 # List of directories to recursively perform text replacements in

@@ -1,14 +1,16 @@
 # Modify this file to suit your project needs
+from platform import python_version
 from re import split
 
+print(python_version())
 # Passed to open() as the encoding option
 # Modify this value to match the encoding your project uses if you run into Python errors that mention decoding
-# See: https://docs.python.org/3/library/functions.html#open
+# See: https://docs.python.org/2.7/library/io.html?highlight=encoding#io.open
 SourceFileEncoding = None # 'utf-8', 'utf-16', 'iso-8859-1', etc.
 
 # Passed to open() as the errors option
 # It's usually safe to set this to 'ignore' but you should use version control to see whether anything important changed
-# See: https://docs.python.org/3/library/functions.html#open
+# See: https://docs.python.org/2.7/library/io.html?highlight=errors#io.open
 EncodingErrorHandling = None # 'strict', 'ignore', 'replace', etc.
 
 # List of directories to recursively perform text replacements in

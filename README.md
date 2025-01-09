@@ -100,6 +100,7 @@ A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "
 `PrebuildConfig.py` gives you options to take advantage of this, plus some other goodies:
 
 - `MacroReplacements` is a dictionary where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version.
+- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h` (excluding the `BETWEEN` macros). It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
 - `AllowDynamicVersionMacroReplacements` does the same thing as `MacroReplacements` but without requiring you to modify the dictionary. Instead, it will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h`. 
 - `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility.
 
@@ -205,8 +206,9 @@ Some other possible use-cases:
 
 ### Technical Notes for PrebuildConfig.py
 
-File Matching:
-
+File Handling:
+- `SourceFileEncoding` is passed to `io.open` as the `encoding` option when reading/writing source files.
+- `EncodingErrorHandling` is passed to `io.open` as the `errors` option when reading/writing source files.
 - `ProcessDirs` is a list of directories to recursively perform replacements in. The more specific you are here, the faster the prebuild script will complete. By default, it does replacements in every file under the plugin `Source` directory. It's not a bad idea to replace that with more specific directories with files you care about.
 - `MatchHeaderFiles` is a regex pattern list for header files (`.h`). These are used to determine which files to perform "fake" macro replacements in by default.
 - `MatchImplementationFiles` is a regex pattern list for implementation files (`.cpp`). These are used in conjunction with `MatchHeaderFiles` to determine which files to perform `TObjectPtr` replacements in.

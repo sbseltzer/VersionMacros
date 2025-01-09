@@ -30,8 +30,7 @@ UE_VERSION_ABOVE(major, minor)
 UE_VERSION_EQUAL(major, minor)
 UE_VERSION_MINIMUM(major, minor)
 UE_VERSION_MAXIMUM(major, minor)
-UE_VERSION_BETWEEN_INCLUSIVE(major_min, minor_min, major_max, minor_max)
-UE_VERSION_BETWEEN_EXCLUSIVE(major_min, minor_min, major_max, minor_max)
+UE_VERSION_WITHIN(major_min, minor_min, major_max, minor_max)
 ```
 My all-time favorites are `UE_VERSION_MINIMUM` and `UE_VERSION_MAXIMUM`, but I've used all of them at some point or another.
 
@@ -68,7 +67,7 @@ Before UE 4.24, `bReplicates` was the way to inform a component/actor that it sh
 ### Example 4: Working around missing operator overloads
 There was a concatenation operator missing for `FString`/`FStringView` until UE 4.27, and the necessary implementation for it also differed in UE 4.24. `FStringView` didn't exist until 4.24 so I was able to build this overload into my backported implementation in 4.23 and lower.
 ```c++
-#if UE_VERSION_BETWEEN_INCLUSIVE(4,24, 4,27)
+#if UE_VERSION_WITHIN(4,24, 4,27)
 FString operator+(const FStringView& Lhs, const FString& RHS)
 {
 #if UE_VERSION_EQUAL(4,24)
@@ -100,7 +99,7 @@ A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "
 `PrebuildConfig.py` gives you options to take advantage of this, plus some other goodies:
 
 - `MacroReplacements` is a dictionary where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version.
-- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h` (excluding the `BETWEEN` macros). It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
+- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h` (excluding the `WITHIN` macro). It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
 - `AllowDynamicVersionMacroReplacements` does the same thing as `MacroReplacements` but without requiring you to modify the dictionary. Instead, it will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h`. 
 - `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility.
 

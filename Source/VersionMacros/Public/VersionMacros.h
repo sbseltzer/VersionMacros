@@ -54,5 +54,4 @@
 #define UE_VERSION_EQUAL(major, minor) UE_VERSION_COMPARE_CURRENT(==, major, minor)
 #define UE_VERSION_MINIMUM(major, minor) UE_VERSION_COMPARE_CURRENT(>=, major, minor)
 #define UE_VERSION_MAXIMUM(major, minor) UE_VERSION_COMPARE_CURRENT(<=, major, minor)
-#define UE_VERSION_BETWEEN_INCLUSIVE(major_min, minor_min, major_max, minor_max) (UE_VERSION_MINIMUM(major_min, minor_min) && UE_VERSION_MAXIMUM(major_max, minor_max))
-#define UE_VERSION_BETWEEN_EXCLUSIVE(major_min, minor_min, major_max, minor_max) (UE_VERSION_ABOVE(major_min, minor_min) && UE_VERSION_BELOW(major_max, minor_max))
+#define UE_VERSION_WITHIN(major_min, minor_min, major_max, minor_max) (UE_VERSION_MINIMUM(major_min, minor_min) && UE_VERSION_MAXIMUM(major_max, minor_max))

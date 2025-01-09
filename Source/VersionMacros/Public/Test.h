@@ -89,9 +89,13 @@ class UVersionMacrosTestObject : public UObject
 public:
  GENERATED_BODY()
 
-#if 0 // !UE_VERSION_EQUAL(5,5)
+#if 1 // UE_VERSION_EQUAL(5,5)
  UPROPERTY()
- bool TestProperty;
+ bool TestProperty1;
+#endif
+#if 1 // TEST_MACRO_A
+ UPROPERTY()
+ bool TestProperty2;
 #endif
 };
 #endif

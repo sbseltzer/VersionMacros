@@ -66,6 +66,44 @@ def do_comparison(version, compare):
     print("Invalid comparison operator: " + compare)
     exit(1)
 
+def comparison_name_to_operator(comparison_name):
+    comparison_operator = ""
+    if comparison_name == "MINIMUM":
+        comparison_operator = ">="
+    elif comparison_name == "MAXIMUM":
+        comparison_operator = "<="
+    elif comparison_name == "BELOW":
+        comparison_operator = "<"
+    elif comparison_name == "ABOVE":
+        comparison_operator = "<"
+    elif comparison_name == "EQUAL":
+        comparison_operator = "=="
+    else:
+        print("Unhandled dynamic macro replacement: UE_VERSION_" + comparison_name)
+        exit(1)
+    return comparison_operator
+
+def parse_prebuild_header_line(line):
+    match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\))', line)
+    if match:
+        macro_name = match.group(1)
+        is_negated = match.group(3) == '!'
+        comparison_operator = comparison_name_to_operator(match.group(4))
+        version = match.group(5) + "." + match.group(6)
+        PrebuildConfig.MacroReplacements[macro_name] = {
+            "Version": version,
+            "Compare": comparison_operator,
+            "MatchFiles": PrebuildConfig.MatchHeaderFiles,
+            "EvaluatedTo": is_negated != do_comparison(version, comparison_operator)
+        }
+        # print("Found", macro_name, "=", match.group(2), "=", PrebuildConfig.MacroReplacements[macro_name]["EvaluatedTo"])
+
+def parse_prebuild_header(path):
+    header_file = open(path, 'r')
+    for line in header_file:
+        parse_prebuild_header_line(line);
+    header_file.close()
+
 def replace_line_in_file(file_path, line):
     changed = False
     new_line = line
@@ -97,36 +135,20 @@ def replace_line_in_file(file_path, line):
                 should_replace = True
                 break
         if should_replace:
-            match = re.search(r'#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
+            match = re.search(r'#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
             if match:
                 current_literal_expression = int(match.group(1))
                 is_negated = match.group(2) == '!'
                 comparison_name = match.group(3)
-                comparison_operator = ""
-                if comparison_name == "MINIMUM":
-                    comparison_operator = ">="
-                elif comparison_name == "MAXIMUM":
-                    comparison_operator = "<="
-                elif comparison_name == "BELOW":
-                    comparison_operator = "<"
-                elif comparison_name == "ABOVE":
-                    comparison_operator = "<"
-                elif comparison_name == "EQUAL":
-                    comparison_operator = "=="
-                else:
-                    print("Unhandled dynamic macro replacement: UE_VERSION_" + comparison_name)
-                    exit(1)
                 is_dynamic_macro_replacement = True
-                compare_major = match.group(4)
-                compare_minor = match.group(5)
-                compare_version = compare_major + "." + compare_minor
-                if (do_comparison(compare_version, comparison_operator) != is_negated):
+                version = match.group(4) + "." + match.group(5)
+                if (do_comparison(version, comparison_name_to_operator(comparison_name)) != is_negated):
                     if (current_literal_expression == 0):
-                        new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
+                        new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
                         changed = True
                 else:
                     if (current_literal_expression == 1):
-                        new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
+                        new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
                         changed = True
     # Fake macro replacement (user-defined form)
     match = re.search(r'#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', new_line)
@@ -151,7 +173,11 @@ def replace_line_in_file(file_path, line):
             if not replacement_info.get('Compare'):
                 print("ERROR: Macro Replacement " + macro_text + " is missing 'Compare' value!")
                 exit(1)
-            if (do_comparison(replacement_info['Version'], replacement_info['Compare']) != is_negated):
+            cached_comparison = replacement_info.get("EvaluatedTo")
+            if cached_comparison == None:
+                cached_comparison = do_comparison(replacement_info['Version'], replacement_info['Compare'])
+                replacement_info["EvaluatedTo"] = cached_comparison
+            if (cached_comparison != is_negated):
                 if (current_literal_expression == 0):
                     new_line = re.sub(r'#if 0(\s*)//(\s*)(!?\w+)', r'#if 1\1//\2\3', new_line)
                     changed = True
@@ -192,6 +218,10 @@ def do_replacements_in_directory_recursive(directory):
             do_replacements_in_directory_recursive(path)
         elif os.path.isfile(path):
             replace_in_file(path)
+
+for path in PrebuildConfig.CustomPrebuildHeaders:
+    if os.path.exists(path):
+        parse_prebuild_header(path)
 
 for dir in PrebuildConfig.ProcessDirs:
     do_replacements_in_directory_recursive(os.path.join(PluginDir, dir))

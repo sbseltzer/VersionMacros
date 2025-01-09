@@ -9,6 +9,8 @@ ProcessDirs = [
     "Source"
 ]
 
+CustomPrebuildHeaders = ["Source/VersionMacros/Public/Prebuild.h"]
+
 # Default file patterns to perform replacements in
 MatchHeaderFiles = [r'.*\.h', r'.*\.hpp']
 MatchImplementationFiles = [r'.*\.cpp', r'.*\.inl', r'.*\.c']

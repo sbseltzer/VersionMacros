@@ -21,4 +21,4 @@ fi
 if [ ! -f "$PythonExe" ]; then
     PythonExe="python"
 fi
-$PythonExe "$PluginDir/Resources/BuildScripts/Prebuild.py"
+"$PythonExe" "$PluginDir/Resources/BuildScripts/Prebuild.py"

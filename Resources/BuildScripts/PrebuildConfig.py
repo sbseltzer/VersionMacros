@@ -1,6 +1,14 @@
 # Modify this file to suit your project needs
 from re import split
 
+# What text encoding to use when reading/writing source files
+# Modify this value to match the encoding your project uses if you run into Python errors that mention decoding
+# Some common choices: utf-8, utf-16, iso-8859-1
+SourceFileEncoding = 'utf-8'
+# Whether to ignore encoding errors when opening files
+# Avoid changing this unless you understand the possible consequences
+IgnoreEncodingErrors = False
+
 # List of directories to recursively perform text replacements in
 # Assumed to be relative to the PluginDir environment variable unless fully-qualified
 # That is, "Source" will be converted to "<PluginDir>/Source", while "C:/Exact/Path" will stay as "C:/Exact/Path"
@@ -9,7 +17,9 @@ ProcessDirs = [
     "Source"
 ]
 
-CustomPrebuildHeaders = ["Source/VersionMacros/Public/Prebuild.h"]
+CustomPrebuildHeaders = [
+    "Source/VersionMacros/Public/Prebuild.h"
+]
 
 # Default file patterns to perform replacements in
 MatchHeaderFiles = [r'.*\.h', r'.*\.hpp']

@@ -21,20 +21,23 @@
 	],
 	"PreBuildSteps": {
 		"Linux": [
+			"export HostPlatform=Linux",
 			"export EngineDir=\"$(EngineDir)\"",
 			"export PluginDir=\"$(PluginDir)\"",
 			"pushd \"$(PluginDir)\"",
-			". ./Resources/BuildScripts/Linux/Prebuild.sh",
+			". ./Resources/BuildScripts/POSIX/Prebuild.sh",
 			"popd"
 		],
 		"Mac": [
+			"export HostPlatform=Mac",
 			"export EngineDir=\"$(EngineDir)\"",
 			"export PluginDir=\"$(PluginDir)\"",
 			"pushd \"$(PluginDir)\"",
-			". ./Resources/BuildScripts/Mac/Prebuild.sh",
+			". ./Resources/BuildScripts/POSIX/Prebuild.sh",
 			"popd"
 		],
 		"Win64": [
+			"set HostPlatform=Win64",
 			"set EngineDir=$(EngineDir)",
 			"set PluginDir=$(PluginDir)",
 			"pushd \"$(PluginDir)\"",

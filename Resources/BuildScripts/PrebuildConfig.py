@@ -1,15 +1,15 @@
 # Modify this file to suit your project needs
 from re import split
 
-# What text encoding to use when reading/writing source files
+# Passed to open() as the encoding option
 # Modify this value to match the encoding your project uses if you run into Python errors that mention decoding
-# Some common choices: utf-8, utf-16, iso-8859-1
-SourceFileEncoding = 'utf-8'
+# See: https://docs.python.org/3/library/functions.html#open
+SourceFileEncoding = None # 'utf-8', 'utf-16', 'iso-8859-1', etc.
 
-# Whether to ignore encoding errors when opening files
-# Any characters that fail to decode will be removed from source files that get modified by these prebuild scripts
-# While this is often safe/harmless, be sure to use version control so you can see whether anything important changed
-IgnoreEncodingErrors = False
+# Passed to open() as the errors option
+# It's usually safe to set this to 'ignore' but you should use version control to see whether anything important changed
+# See: https://docs.python.org/3/library/functions.html#open
+EncodingErrorHandling = None # 'strict', 'ignore', 'replace', etc.
 
 # List of directories to recursively perform text replacements in
 # Assumed to be relative to the PluginDir environment variable unless fully-qualified

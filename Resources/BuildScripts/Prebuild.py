@@ -99,7 +99,7 @@ def parse_prebuild_header_line(line):
         # print("Found", macro_name, "=", match.group(2), "=", PrebuildConfig.MacroReplacements[macro_name]["EvaluatedTo"])
 
 def parse_prebuild_header(path):
-    header_file = open(path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=(PrebuildConfig.IgnoreEncodingErrors and 'ignore' or ''))
+    header_file = open(path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     for line in header_file:
         parse_prebuild_header_line(line);
     header_file.close()
@@ -192,8 +192,8 @@ def replace_line_in_file(file_path, line):
     return new_line, changed
 
 def replace_in_file(file_path):
-    input_file = open(file_path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=(PrebuildConfig.IgnoreEncodingErrors and 'ignore' or ''))
-    output_file = open(file_path + ".new", 'w', encoding=PrebuildConfig.SourceFileEncoding, errors=(PrebuildConfig.IgnoreEncodingErrors and 'ignore' or ''))
+    input_file = open(file_path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
+    output_file = open(file_path + ".new", 'w', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     any_replaced = False
     for line in input_file:
         new_line, changed = replace_line_in_file(file_path, line)

@@ -97,9 +97,11 @@ static bool IsABot(APlayerState* PS)
 
 A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "magic" macros in preprocessor logic. Prebuild scripts allow you to work around this by taking advantage of a quirk in UnrealHeaderTool that allows `#if 1` and `#if 0` to wrap those "magic" macros.
 
-`PrebuildConfig.py` has a section where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO` and the prebuild script will automatically change it between `0` and `1` depending on your engine version.
+`PrebuildConfig.py` gives you options to take advantage of this, plus some other goodies:
 
-It also includes an option for backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 support.
+- `MacroReplacements` is a dictionary where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version.
+- `AllowDynamicVersionMacroReplacements` does the same thing as `MacroReplacements` but without requiring you to modify the dictionary. Instead, it will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h`. 
+- `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility.
 
 To add the build scripts to your own plugin:
 1. Copy the `Resources/BuildScripts/` folder to your plugin `Resources/` folder.
@@ -203,14 +205,16 @@ Some other possible use-cases:
 
 ### Technical Notes for PrebuildConfig.py
 
-`ProcessDirs` is a list of directories to recursively perform replacements in. The more specific you are here, the faster the prebuild script will complete. By default, it does replacements in every file under the plugin `Source` directory. It's not a bad idea to replace that with more specific directories with files you care about.
+File Matching:
 
-`MacroReplacements` is a dictionary of macro replacement configurations, which we've already covered in examples.
+- `ProcessDirs` is a list of directories to recursively perform replacements in. The more specific you are here, the faster the prebuild script will complete. By default, it does replacements in every file under the plugin `Source` directory. It's not a bad idea to replace that with more specific directories with files you care about.
+- `MatchHeaderFiles` is a regex pattern list for header files (`.h`). These are used to determine which files to perform "fake" macro replacements in by default.
+- `MatchImplementationFiles` is a regex pattern list for implementation files (`.cpp`). These are used in conjunction with `MatchHeaderFiles` to determine which files to perform `TObjectPtr` replacements in.
+- `MatchAllSourceFiles` is the combination of `MatchHeaderFiles` and `MatchImplementationFiles`.
 
 There are some options at the bottom that generate some helpful macro replacements.
 - `AllowVersionOrLaterReplacements` adds `UE_<MajorVersion>_<MinorVersion>_OR_LATER`.
 - `AllowVersionOrEarlierReplacements` adds `UE_<MajorVersion>_<MinorVersion>_OR_EARLIER`.
-- `DefaultMatchFiles` are file patterns to match for the generated macro replacements.
 
 # Platform Support
 
@@ -228,11 +232,13 @@ Please file an issue if you run into a platform where this doesn't work.
 
 I've tested this in UE versions 4.12 to 5.x, but it should work in lower versions as well.
 
-UE 4.8 and lower do not bundle a Python executable, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
+Support Notes:
+- UE 4.14 and lower have some problems with wrapping entire `UCLASS` declarations in `#if 0` / `#if 1` preprocessor blocks.
+- UE 4.8 and lower do not bundle a Python executable, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
 
-I'm unable to test UE 4.9 and lower since I was unable to install Visual Studio 2013 on my system for some reason.
-
-I'm unable to test UE 4.10 and 4.11 since I was unable to find a Visual Studio 2015 installer that doesn't include Update 3 (which breaks builds on those versions of UE).
+Test Notes:
+- I'm unable to test UE 4.10 and 4.11 until I can find a Visual Studio 2015 installer that doesn't include Update 3, which breaks builds on those versions of UE.
+- I'm unable to test UE 4.9 and lower. I was unable to install Visual Studio 2013 on my system due to an unspecified conflict.
 
 Please file an issue if you run into a version of Unreal where this doesn't work.
 

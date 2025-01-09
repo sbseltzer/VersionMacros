@@ -80,7 +80,7 @@ compile_time_assert(TEST_MACRO);
 #endif
 #endif
 
-#if 0 // TEST_MACRO
+#if 1 // !TEST_MACRO
 #include "Test.generated.h"
 
 UCLASS()
@@ -89,7 +89,7 @@ class UVersionMacrosTestObject : public UObject
 public:
  GENERATED_BODY()
 
-#if 0 // TEST_MACRO
+#if 0 // !UE_VERSION_EQUAL(5,5)
  UPROPERTY()
  bool TestProperty;
 #endif

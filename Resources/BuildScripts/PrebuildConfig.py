@@ -28,6 +28,8 @@ MacroReplacements = {
     },
 }
 
+# Whether to interpret macro replacements of the form UE_VERSION_*(major,minor)
+AllowDynamicVersionMacroReplacements = True
 # Whether to replace TObjectPtr<T> with T* on UE4 builds (includes annotation for reversibility)
 AllowObjectPtrReplacements = True
 

@@ -69,14 +69,14 @@ def do_comparison(version, compare):
 def replace_line_in_file(file_path, line):
     changed = False
     new_line = line
+    is_dynamic_macro_replacement = False
+    # TObjectPtr replacement
     if PrebuildConfig.AllowObjectPtrReplacements:
-        should_replace = True
-        if (PrebuildConfig.MatchAllSourceFiles and len(PrebuildConfig.MatchAllSourceFiles) > 0):
-            should_replace = False
-            for pattern in PrebuildConfig.MatchAllSourceFiles:
-                if (re.match(pattern, file_path)):
-                    should_replace = True
-                    break
+        should_replace = False
+        for pattern in PrebuildConfig.MatchAllSourceFiles:
+            if (re.match(pattern, file_path)):
+                should_replace = True
+                break
         if should_replace:
             if do_comparison("5.0", "<"):
                 object_ptr_match = re.search(r'TObjectPtr<([\s\w_:]+)>', new_line)
@@ -88,14 +88,55 @@ def replace_line_in_file(file_path, line):
                 if raw_object_ptr_match:
                     new_line = re.sub(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<\1>', new_line)
                     changed = True
+    # Fake macro replacement (UE_VERSION_* form)
+    if PrebuildConfig.AllowDynamicVersionMacroReplacements:
+        should_replace = False
+        # Only header files benefit from this kind of fake macro replacement
+        for pattern in PrebuildConfig.MatchHeaderFiles:
+            if (re.match(pattern, file_path)):
+                should_replace = True
+                break
+        if should_replace:
+            match = re.search(r'#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
+            if match:
+                current_literal_expression = int(match.group(1))
+                is_negated = match.group(2) == '!'
+                comparison_name = match.group(3)
+                comparison_operator = ""
+                if comparison_name == "MINIMUM":
+                    comparison_operator = ">="
+                elif comparison_name == "MAXIMUM":
+                    comparison_operator = "<="
+                elif comparison_name == "BELOW":
+                    comparison_operator = "<"
+                elif comparison_name == "ABOVE":
+                    comparison_operator = "<"
+                elif comparison_name == "EQUAL":
+                    comparison_operator = "=="
+                else:
+                    print("Unhandled dynamic macro replacement: UE_VERSION_" + comparison_name)
+                    exit(1)
+                is_dynamic_macro_replacement = True
+                compare_major = match.group(4)
+                compare_minor = match.group(5)
+                compare_version = compare_major + "." + compare_minor
+                if (do_comparison(compare_version, comparison_operator) != is_negated):
+                    if (current_literal_expression == 0):
+                        new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
+                        changed = True
+                else:
+                    if (current_literal_expression == 1):
+                        new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
+                        changed = True
+    # Fake macro replacement (user-defined form)
     match = re.search(r'#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', new_line)
     # Search the dictionary of user-defined macros that are associated with a version and comparison
-    if match:
+    if match and not is_dynamic_macro_replacement:
         current_literal_expression = int(match.group(1))
         is_negated = match.group(2) == '!'
         macro_text = match.group(3)
         replacement_info = PrebuildConfig.MacroReplacements.get(macro_text)
-        match_files = replacement_info and replacement_info.get('MatchFiles') or None
+        match_files = replacement_info and replacement_info.get('MatchFiles') or PrebuildConfig.MatchHeaderFiles
         should_replace = replacement_info != None
         if (match_files and len(match_files) > 0):
             should_replace = False

@@ -214,10 +214,6 @@ File Handling:
 - `MatchImplementationFiles` is a regex pattern list for implementation files (`.cpp`). These are used in conjunction with `MatchHeaderFiles` to determine which files to perform `TObjectPtr` replacements in.
 - `MatchAllSourceFiles` is the combination of `MatchHeaderFiles` and `MatchImplementationFiles`.
 
-There are some options at the bottom that generate some helpful macro replacements.
-- `AllowVersionOrLaterReplacements` adds `UE_<MajorVersion>_<MinorVersion>_OR_LATER`.
-- `AllowVersionOrEarlierReplacements` adds `UE_<MajorVersion>_<MinorVersion>_OR_EARLIER`.
-
 # Platform Support
 
 `VersionMacros.h` should work on all platforms.

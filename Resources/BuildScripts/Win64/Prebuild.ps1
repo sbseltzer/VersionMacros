@@ -29,4 +29,6 @@ if (-Not (Test-Path "$PythonExe" -PathType Leaf))
 {
     $PythonExe = "python.exe"
 }
+$Env:UEMajorVersion = $MajorVersion
+$Env:UEMinorVersion = $MinorVersion
 & "$PythonExe" "$Env:PluginDir\Resources\BuildScripts\Prebuild.py"

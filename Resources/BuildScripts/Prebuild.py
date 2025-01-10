@@ -22,23 +22,35 @@ import re
 import PrebuildConfig
 import io
 
-# Required Environment Variables
-# You must be sure your *.uplugin file sets these values before running the script
-# An example of doing this can be found in VersionMacros.uplugin
+# Environment Variables
+# PluginDir is used for source file path construction. Will assume current working directory if not set.
+PluginDir = os.environ['PluginDir'] or "."
+# You must either set EngineDir or UEMajorVersion/UEMinorVersion
+# EngineDir is used to deduce engine version when it isn't explicitly provided by UEMajorVersion/UEMinorVersion
 EngineDir = os.environ['EngineDir']
-PluginDir = os.environ['PluginDir']
+MajorVersion = os.environ['UEMajorVersion']
+MinorVersion = os.environ['UEMinorVersion']
+
+# Deduce engine version if not already provided by environment
+if MajorVersion == None or MinorVersion == None:
+    if EngineDir == None:
+        print("EngineDir environment variable is required to find Build.version file!")
+        exit(1)
+    VersionFilePath = EngineDir + "/Build/Build.version"
+    if not os.path.exists(VersionFilePath):
+        print("Failed to find engine version file!")
+        exit(1)
+    with open(VersionFilePath) as f:
+        BuildVersion = json.load(f)
+        MajorVersion = str(BuildVersion['MajorVersion'])
+        MinorVersion = str(BuildVersion['MinorVersion'])
+
+EngineVersion = MajorVersion + "." + MinorVersion
 
 def version_to_int(major, minor, patch=0):
-    return int(int(major)*1000000+int(minor)*1000+int(patch))
+    return int(major)*1000000+int(minor)*1000+int(patch)
 
-# Deduce engine version
-with open(EngineDir + "/Build/Build.version") as f:
-    BuildVersion = json.load(f)
-    EngineVersion = str(BuildVersion['MajorVersion']) + "." + str(BuildVersion['MinorVersion'])
-    EngineVersionAsInt = version_to_int(BuildVersion['MajorVersion'], BuildVersion['MinorVersion'])
-if not EngineVersion:
-    print("Failed to find engine version!")
-    exit(1)
+EngineVersionAsInt = version_to_int(MajorVersion, MinorVersion)
 
 def do_comparison(version, compare):
     # If version is a non-string (i.e. float or decimal) convert to string so we can separate the major/minor versions

@@ -76,7 +76,7 @@ def comparison_name_to_operator(comparison_name):
     elif comparison_name == "BELOW":
         comparison_operator = "<"
     elif comparison_name == "ABOVE":
-        comparison_operator = "<"
+        comparison_operator = ">"
     elif comparison_name == "EQUAL":
         comparison_operator = "=="
     else:

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "VersionMacros.h"
+#include "Prebuild.h"
 
 // Compile-time sanity tests
 #ifndef UE_VERSION_COMPILE_TIME_TESTS
@@ -44,7 +45,6 @@
 // If any of the following asserts fail, it means something is wrong with the prebuild scripts
 //==============================================================================================
 
-#define UE_5_0_OR_LATER UE_VERSION_MINIMUM(5, 0)
 #if 1 // UE_5_0_OR_LATER
 compile_time_assert(UE_5_0_OR_LATER);
 #else
@@ -56,7 +56,6 @@ compile_time_assert(!UE_5_0_OR_LATER);
 compile_time_assert(UE_5_0_OR_LATER);
 #endif
 
-#define UE_5_4_OR_LATER UE_VERSION_MINIMUM(5, 4)
 #if 1 // UE_5_4_OR_LATER
 compile_time_assert(UE_5_4_OR_LATER);
 #else
@@ -67,20 +66,65 @@ compile_time_assert(!UE_5_4_OR_LATER);
 #else
 compile_time_assert(UE_5_4_OR_LATER);
 #endif
-#define TEST_MACRO UE_VERSION_MAXIMUM(5, 0)
-#if 0 // TEST_MACRO
-compile_time_assert(TEST_MACRO);
+
+#if 0 // TEST_MACRO_A
+compile_time_assert(TEST_MACRO_A);
 #else
-compile_time_assert(!TEST_MACRO);
+compile_time_assert(!TEST_MACRO_A);
 #endif
-#if 1 // !TEST_MACRO
-compile_time_assert(!TEST_MACRO);
+#if 1 // !TEST_MACRO_A
+compile_time_assert(!TEST_MACRO_A);
 #else
-compile_time_assert(TEST_MACRO);
-#endif
+compile_time_assert(TEST_MACRO_A);
 #endif
 
-#if 1 // !TEST_MACRO
+#if 0 // UE_VERSION_BELOW(5,0)
+compile_time_assert(UE_VERSION_BELOW(5,0));
+#else
+compile_time_assert(!UE_VERSION_BELOW(5,0));
+#endif
+#if 1 // !UE_VERSION_BELOW(5,0)
+compile_time_assert(!UE_VERSION_BELOW(5,0));
+#else
+compile_time_assert(UE_VERSION_BELOW(5,0));
+#endif
+
+#if 1 // UE_VERSION_ABOVE(5,0)
+compile_time_assert(UE_VERSION_ABOVE(5,0));
+#else
+compile_time_assert(!UE_VERSION_ABOVE(5,0));
+#endif
+#if 0 // !UE_VERSION_ABOVE(5,0)
+compile_time_assert(!UE_VERSION_ABOVE(5,0));
+#else
+compile_time_assert(UE_VERSION_ABOVE(5,0));
+#endif
+
+#if 1 // UE_VERSION_MINIMUM(5,0)
+compile_time_assert(UE_VERSION_MINIMUM(5,0));
+#else
+compile_time_assert(!UE_VERSION_MINIMUM(5,0));
+#endif
+#if 0 // !UE_VERSION_MINIMUM(5,0)
+compile_time_assert(!UE_VERSION_MINIMUM(5,0));
+#else
+compile_time_assert(UE_VERSION_MINIMUM(5,0));
+#endif
+
+#if 0 // UE_VERSION_MAXIMUM(5,0)
+compile_time_assert(UE_VERSION_MAXIMUM(5,0));
+#else
+compile_time_assert(!UE_VERSION_MAXIMUM(5,0));
+#endif
+#if 1 // !UE_VERSION_MAXIMUM(5,0)
+compile_time_assert(!UE_VERSION_MAXIMUM(5,0));
+#else
+compile_time_assert(UE_VERSION_MAXIMUM(5,0));
+#endif
+
+#endif
+
+#if 1 // !TEST_MACRO_A
 #include "Test.generated.h"
 
 UCLASS()
@@ -93,7 +137,7 @@ public:
  UPROPERTY()
  bool TestProperty1;
 #endif
-#if 1 // TEST_MACRO_A
+#if 1 // TEST_MACRO_B
  UPROPERTY()
  bool TestProperty2;
 #endif

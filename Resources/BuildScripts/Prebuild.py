@@ -148,7 +148,7 @@ def replace_line_in_file(file_path, line):
                 should_replace = True
                 break
         if should_replace:
-            match = re.search(r'#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
+            match = re.search(r'^\s*#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
             if match:
                 current_literal_expression = int(match.group(1))
                 is_negated = match.group(2) == '!'
@@ -164,7 +164,7 @@ def replace_line_in_file(file_path, line):
                         new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
                         changed = True
     # Fake macro replacement (user-defined form)
-    match = re.search(r'#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', new_line)
+    match = re.search(r'^\s*#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', new_line)
     # Search the dictionary of user-defined macros that are associated with a version and comparison
     if match and not is_dynamic_macro_replacement:
         current_literal_expression = int(match.group(1))

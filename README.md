@@ -14,22 +14,22 @@ The VersionMacros plugin is not meant to be installed in your project. Instead, 
 
 ## Installing VersionMacros.h
 
-The `VersionMacros.h` header file is located in `Source/VersionMacros/Public/` and is meant to be copied to your plugin `Source/<PluginName>/Public/` folder.
+The [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) header file is located in [`Source/VersionMacros/Public/`](Source/VersionMacros/Public/) and is meant to be copied to your plugin `Source/<PluginName>/Public/` folder.
 
 [Jump to macro documentation](#using-versionmacrosh)
 
 ## Installing Prebuild Scripts
 
 To add the prebuild scripts to your own plugin:
-1. Copy the `Resources/BuildScripts/` folder to your plugin `Resources/` folder.
-2. Copy the `"PreBuildSteps"` section from `VersionMacros.uplugin` to your `.uplugin` file.
-3. Modify the prebuild scripts as needed for your plugin. Use the `PrebuildConfig.py` file to customize to your project needs.
+1. Copy the [`Resources/BuildScripts/`](Resources/BuildScripts/) folder to your plugin `Resources/` folder.
+2. Copy the `"PreBuildSteps"` section from [`VersionMacros.uplugin`](VersionMacros.uplugin) to your `.uplugin` file.
+3. Modify the prebuild scripts as needed for your plugin. Use the [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) file to customize to your project needs.
 
 [Jump to prebuild documentation](#using-prebuild-scripts)
 
 # Using VersionMacros.h
 
-`VersionMacros.h` provides the following macros for engine version comparisons.
+[`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) provides the following macros for engine version comparisons.
 
 ```
 UE_VERSION_BELOW(major, minor)
@@ -103,7 +103,7 @@ static bool IsABot(APlayerState* PS)
 
 A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "magic" macros in preprocessor logic. Prebuild scripts allow you to work around this by taking advantage of a quirk in UnrealHeaderTool that allows `#if 1` and `#if 0` to wrap those "magic" macros.
 
-`PrebuildConfig.py` gives you options to take advantage of this, plus some other goodies:
+[`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) gives you options to take advantage of this, plus some other goodies:
 
 - `MacroReplacements` is a dictionary where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version.
 - `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h` (excluding the `WITHIN` macro). It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
@@ -115,9 +115,9 @@ Here's how it works:
 2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them. The relevant variables are `EngineDir` and `PluginDir`.
 3. `PreBuildSteps` executes the shim script contained in `Resources/BuildScripts/<HostPlatform>/`. On Windows this is a Powershell script. On Mac/Linux it's a Bash script.
 4. The shim script first deduces your Unreal Engine version using the `Build.version` file in your engine directory.
-5. The shim script then deduces the bundled Python executable location for your engine version. If it can't be found (i.e. UE 4.8 or lower), it attempts to fall back to whatever Python executable you have installed.
-6. The shim script then executes `Prebuild.py`.
-7. `Prebuild.py` performs text replacements in your plugin source files according to your engine version and your settings in `PrebuildConfig.py`.
+5. The shim script then deduces a reliable Python executable location. On Windows, it will use the Python that's bundled with Unreal according to your engine version. On Mac/Linux, it will search for an executable named `python3` or `python` using your environment `PATH`.
+6. The shim script then executes [`Prebuild.py`](Resources/BuildScripts/Prebuild.py).
+7. [`Prebuild.py`](Resources/BuildScripts/Prebuild.py) performs text replacements in your plugin source files according to your engine version and your settings in [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py).
 
 The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
 

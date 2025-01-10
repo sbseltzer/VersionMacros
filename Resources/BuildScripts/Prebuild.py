@@ -19,8 +19,9 @@
 import os
 import json
 import re
-import PrebuildConfig
 import io
+import PrebuildConfig
+from PrebuildConst import *
 
 # Environment Variables
 # PluginDir is used for source file path construction. Will assume current working directory if not set.
@@ -63,53 +64,36 @@ def do_comparison(version, compare):
     # For example UE 4.9 is a lower version than UE 4.27, but a numeric comparison would evaluate to the opposite!
     [major, minor] = re.split(r'\.', version, 1)
     version_as_int = version_to_int(major, minor)
-    # Old versions of Unreal use Python 2, which doesn't have match statements, so we use if-else here
-    if compare == '==':
-        return EngineVersionAsInt == version_as_int
-    elif compare == '!=':
-        return EngineVersionAsInt != version_as_int 
-    elif compare == '<':
-        return EngineVersionAsInt < version_as_int
-    elif compare == '<=':
-        return EngineVersionAsInt <= version_as_int 
-    elif compare == '>':
-        return EngineVersionAsInt > version_as_int
-    elif compare == '>=':
-        return EngineVersionAsInt >= version_as_int 
-    print("Invalid comparison operator: " + compare)
-    exit(1)
-
-def comparison_name_to_operator(comparison_name):
-    comparison_operator = ""
-    if comparison_name == "MINIMUM":
-        comparison_operator = ">="
-    elif comparison_name == "MAXIMUM":
-        comparison_operator = "<="
-    elif comparison_name == "BELOW":
-        comparison_operator = "<"
-    elif comparison_name == "ABOVE":
-        comparison_operator = ">"
-    elif comparison_name == "EQUAL":
-        comparison_operator = "=="
-    else:
-        print("Unhandled dynamic macro replacement: UE_VERSION_" + comparison_name)
+    compare_id = (type(compare) == int) and compare or OperatorStringToID.get(compare)
+    if compare_id == None:
+        print("Error: Invalid comparison operator '" + compare + "'!")
         exit(1)
-    return comparison_operator
+    # Old versions of Unreal use Python 2, which doesn't have match statements, so we use if-else here
+    if compare_id == EQUAL:
+        return EngineVersionAsInt == version_as_int
+    elif compare_id == BELOW:
+        return EngineVersionAsInt < version_as_int
+    elif compare_id == MAXIMUM:
+        return EngineVersionAsInt <= version_as_int
+    elif compare_id == ABOVE:
+        return EngineVersionAsInt > version_as_int
+    elif compare_id == MINIMUM:
+        return EngineVersionAsInt >= version_as_int
+    print("Error: Unhandled comparison operator: " + compare)
+    exit(1)
 
 def parse_prebuild_header_line(line):
     match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\))', line)
     if match:
         macro_name = match.group(1)
         is_negated = match.group(3) == '!'
-        comparison_operator = comparison_name_to_operator(match.group(4))
+        comparison_string = match.group(4)
         version = match.group(5) + "." + match.group(6)
         PrebuildConfig.MacroReplacements[macro_name] = {
             "Version": version,
-            "Compare": comparison_operator,
             "MatchFiles": PrebuildConfig.MatchHeaderFiles,
-            "EvaluatedTo": is_negated != do_comparison(version, comparison_operator)
+            "EvaluatedTo": is_negated != do_comparison(version, comparison_string)
         }
-        # print("Found", macro_name, "=", match.group(2), "=", PrebuildConfig.MacroReplacements[macro_name]["EvaluatedTo"])
 
 def parse_prebuild_header(path):
     header_file = io.open(path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
@@ -129,7 +113,7 @@ def replace_line_in_file(file_path, line):
                 should_replace = True
                 break
         if should_replace:
-            if do_comparison("5.0", "<"):
+            if do_comparison("5.0", BELOW):
                 object_ptr_match = re.search(r'TObjectPtr<([\s\w_:]+)>', new_line)
                 if object_ptr_match:
                     new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
@@ -155,7 +139,7 @@ def replace_line_in_file(file_path, line):
                 comparison_name = match.group(3)
                 is_dynamic_macro_replacement = True
                 version = match.group(4) + "." + match.group(5)
-                if (do_comparison(version, comparison_name_to_operator(comparison_name)) != is_negated):
+                if (do_comparison(version, comparison_name) != is_negated):
                     if (current_literal_expression == 0):
                         new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
                         changed = True
@@ -180,15 +164,17 @@ def replace_line_in_file(file_path, line):
                     should_replace = True
                     break
         if (should_replace):
-            if not replacement_info.get('Version'):
-                print("ERROR: Macro Replacement " + macro_text + " is missing 'Version' value!")
-                exit(1)
-            if not replacement_info.get('Compare'):
-                print("ERROR: Macro Replacement " + macro_text + " is missing 'Compare' value!")
-                exit(1)
             cached_comparison = replacement_info.get("EvaluatedTo")
             if cached_comparison == None:
-                cached_comparison = do_comparison(replacement_info['Version'], replacement_info['Compare'])
+                compare_version = replacement_info.get('Version')
+                if not compare_version:
+                    print("ERROR: Macro Replacement " + macro_text + " is missing 'Version' value!")
+                    exit(1)
+                compare_type = replacement_info.get('Compare')
+                if not compare_type:
+                    print("ERROR: Macro Replacement " + macro_text + " is missing 'Compare' value!")
+                    exit(1)
+                cached_comparison = do_comparison(compare_version, compare_type)
                 replacement_info["EvaluatedTo"] = cached_comparison
             if (cached_comparison != is_negated):
                 if (current_literal_expression == 0):

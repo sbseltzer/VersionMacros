@@ -1,5 +1,5 @@
 # Modify this file to suit your project needs
-from re import split
+from PrebuildConst import *
 
 # List of directories to recursively perform text replacements in
 # Assumed to be relative to the PluginDir environment variable unless fully-qualified

@@ -157,6 +157,18 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FTestObjectPtrDelegate1, const TObjectPtr<U
 DECLARE_MULTICAST_DELEGATE_TwoParams(FTestObjectPtrDelegate2, const TObjectPtr<UObject>, TObjectPtr<UObject>);
 // NOTE: DECLARE_DYNAMIC_MULTICAST_DELEGATE is not relevant to test as it's not allowed to take TObjectPtr as a parameter type
 
+#define TEST_MACRO UE_5_0_OR_EARLIER
+#if 0 // TEST_MACRO
+compile_time_assert(TEST_MACRO);
+#else
+compile_time_assert(!TEST_MACRO);
+#endif
+#if 1 // !TEST_MACRO
+compile_time_assert(!TEST_MACRO);
+#else
+compile_time_assert(TEST_MACRO);
+#endif
+
 #endif
 
 // Bare minimum code plugin

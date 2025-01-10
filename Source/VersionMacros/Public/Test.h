@@ -149,7 +149,7 @@ public:
  UPROPERTY()
  bool TestProperty1;
 #endif
-#if 1 // TEST_MACRO_B
+#if 0 // TEST_MACRO_B
  UPROPERTY()
  bool TestProperty2;
 #endif

@@ -101,56 +101,61 @@ def parse_prebuild_header(path):
         parse_prebuild_header_line(line);
     header_file.close()
 
-def replace_line_in_file(file_path, line):
-    changed = False
+def handle_object_ptr_replacement(file_path, line):
     new_line = line
+    changed = False
+    should_replace = False
+    for pattern in PrebuildConfig.MatchAllSourceFiles:
+        if (re.match(pattern, file_path)):
+            should_replace = True
+            break
+    if should_replace:
+        if do_comparison("5.0", BELOW):
+            object_ptr_match = re.search(r'TObjectPtr<([\s\w_:]+)>', new_line)
+            if object_ptr_match:
+                new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
+                changed = True
+        else:
+            raw_object_ptr_match = re.search(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
+            if raw_object_ptr_match:
+                new_line = re.sub(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<\1>', new_line)
+                changed = True
+    return new_line, changed
+
+def handle_dynamic_fake_macro_replacement(file_path, line):
+    new_line = line
+    changed = False
     is_dynamic_macro_replacement = False
-    # TObjectPtr replacement
-    if PrebuildConfig.AllowObjectPtrReplacements:
-        should_replace = False
-        for pattern in PrebuildConfig.MatchAllSourceFiles:
-            if (re.match(pattern, file_path)):
-                should_replace = True
-                break
-        if should_replace:
-            if do_comparison("5.0", BELOW):
-                object_ptr_match = re.search(r'TObjectPtr<([\s\w_:]+)>', new_line)
-                if object_ptr_match:
-                    new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
+    should_replace = False
+    # Only header files benefit from this kind of fake macro replacement
+    for pattern in PrebuildConfig.MatchHeaderFiles:
+        if (re.match(pattern, file_path)):
+            should_replace = True
+            break
+    if should_replace:
+        match = re.search(r'^\s*#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
+        if match:
+            current_literal_expression = int(match.group(1))
+            is_negated = match.group(2) == '!'
+            comparison_name = match.group(3)
+            is_dynamic_macro_replacement = True
+            version = match.group(4) + "." + match.group(5)
+            if (do_comparison(version, comparison_name) != is_negated):
+                if (current_literal_expression == 0):
+                    new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
                     changed = True
             else:
-                raw_object_ptr_match = re.search(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
-                if raw_object_ptr_match:
-                    new_line = re.sub(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<\1>', new_line)
+                if (current_literal_expression == 1):
+                    new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
                     changed = True
-    # Fake macro replacement (UE_VERSION_* form)
-    if PrebuildConfig.AllowDynamicVersionMacroReplacements:
-        should_replace = False
-        # Only header files benefit from this kind of fake macro replacement
-        for pattern in PrebuildConfig.MatchHeaderFiles:
-            if (re.match(pattern, file_path)):
-                should_replace = True
-                break
-        if should_replace:
-            match = re.search(r'^\s*#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
-            if match:
-                current_literal_expression = int(match.group(1))
-                is_negated = match.group(2) == '!'
-                comparison_name = match.group(3)
-                is_dynamic_macro_replacement = True
-                version = match.group(4) + "." + match.group(5)
-                if (do_comparison(version, comparison_name) != is_negated):
-                    if (current_literal_expression == 0):
-                        new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
-                        changed = True
-                else:
-                    if (current_literal_expression == 1):
-                        new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
-                        changed = True
-    # Fake macro replacement (user-defined form)
+    return new_line, changed, is_dynamic_macro_replacement
+                    
+def handle_fake_macro_replacement(file_path, line):
+    new_line = line
+    changed = False
     match = re.search(r'^\s*#if (\d)\s*//\s*(!?)(\w[\w\d_]+)', new_line)
     # Search the dictionary of user-defined macros that are associated with a version and comparison
-    if match and not is_dynamic_macro_replacement:
+    if match:
         current_literal_expression = int(match.group(1))
         is_negated = match.group(2) == '!'
         macro_text = match.group(3)
@@ -186,6 +191,21 @@ def replace_line_in_file(file_path, line):
                     changed = True
         if not replacement_info:
             print("Failed to find Macro Replacement Info for " + macro_text)
+    return new_line, changed
+    
+def replace_line_in_file(file_path, line):
+    changed = False
+    new_line = line
+    is_dynamic_macro_replacement = False
+    # TObjectPtr replacement
+    if PrebuildConfig.AllowObjectPtrReplacements:
+        [new_line, changed] = handle_object_ptr_replacement(file_path, new_line)
+    # Fake macro replacement (UE_VERSION_* form)
+    if PrebuildConfig.AllowDynamicVersionMacroReplacements:
+        [new_line, changed, is_dynamic_macro_replacement] = handle_dynamic_fake_macro_replacement(file_path, new_line)
+    # Fake macro replacement (user-defined form)
+    if not is_dynamic_macro_replacement:
+        [new_line, changed] = handle_fake_macro_replacement(file_path, new_line)
     if (changed):
         print("Changed:\n  " + line + "To:\n  " + new_line)
     return new_line, changed

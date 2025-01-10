@@ -30,13 +30,6 @@
 #define UE_VERSION_COMPILE_TIME_TESTS 1
 #endif
 
-#if UE_VERSION_MAXIMUM(4, 15)
-#include "Core.h"
-#include "UObject/ObjectMacros.h"
-#include "UObject/UObjectGlobals.h"
-#include "UObject/Object.h"
-#endif
-
 #if UE_VERSION_COMPILE_TIME_TESTS
 #define compile_time_assert(b) static_assert((b), "Compile time assertion failed: "#b)
 
@@ -136,9 +129,23 @@ compile_time_assert(UE_VERSION_MAXIMUM(5,0));
 
 #endif
 
+//================================================================================================================
+// NOTE: I haven't managed to get any UCLASS or USTRUCT declarations from this file to compile in 4.13 and lower.
+//================================================================================================================
+#if 1 // UE_VERSION_ABOVE(4, 13)
+
+#if UE_VERSION_MAXIMUM(4, 15)
+#include "Core.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/Object.h"
+#endif
+
+//===================================================================================================================
 // NOTE: If you conditionally disable all UCLASS/USTRUCT declarations in a file, the .generated.h file won't exist!
 // The simplest solution is to declare an empty placeholder USTRUCT to ensure the .generated.h file always exists.
 // If your file only has one UCLASS/USTRUCT, you can simply move the .generated.h include inside the same #if block.
+//===================================================================================================================
 
 #include "Test.generated.h"
 
@@ -183,4 +190,6 @@ public:
 	bool TestProperty;
 #endif
 };
+#endif
+
 #endif

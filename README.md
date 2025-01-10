@@ -6,7 +6,7 @@ This repository has 2 things that help with multi-version support in Unreal code
 
 Both are optional and independent of one another.
 
-I use these on my personal collection of plugin across various versions of UE4 and UE5. I sometimes needed to backport modern UE features, which normally is not possible with preprocessor macros alone.
+I use these on my personal collection of plugins across various versions of UE4 and UE5. I sometimes needed to backport modern UE features, which normally is not possible with preprocessor macros alone.
 
 ## VersionMacros.h
 

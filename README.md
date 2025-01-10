@@ -6,23 +6,30 @@ This repository has 2 things that help with multi-version support in Unreal code
 
 Both are optional and independent of one another.
 
-This was originally designed for use on my personal collection of plugins, which I use in various versions of UE4 and UE5. I sometimes needed to backport modern UE features, which normally is not possible with preprocessor macros alone.
+I use these on my personal collection of plugin across various versions of UE4 and UE5. I sometimes needed to backport modern UE features, which normally is not possible with preprocessor macros alone.
 
-## Installation
+# Installation
 
 The VersionMacros plugin is not meant to be installed in your project. Instead, you should copy the parts you need to the plugins you wish to use it on. This is explained in greater detail below.
 
-# Usage
+## Installing VersionMacros.h
 
 The `VersionMacros.h` header file is located in `Source/VersionMacros/Public/` and is meant to be copied to your plugin `Source/<PluginName>/Public/` folder.
 
-The prebuild scripts are located in the `Resources/BuildScripts/` folder, which is meant to be copied to your plugin `Resources/` folder.
+[Jump to macro documentation](#using-versionmacrosh)
 
-The `VersionMacros.uplugin` file has an example of using the prebuild scripts, which can be copied to your own `.uplugin` files if you choose to use the build scripts.
+## Installing Prebuild Scripts
 
-## Macros
+To add the prebuild scripts to your own plugin:
+1. Copy the `Resources/BuildScripts/` folder to your plugin `Resources/` folder.
+2. Copy the `"PreBuildSteps"` section from `VersionMacros.uplugin` to your `.uplugin` file.
+3. Modify the prebuild scripts as needed for your plugin. Use the `PrebuildConfig.py` file to customize to your project needs.
 
-`VersionMacros.h` provides the following macros for arbitrary engine version comparisons.
+[Jump to prebuild documentation](#using-prebuild-scripts)
+
+# Using VersionMacros.h
+
+`VersionMacros.h` provides the following macros for engine version comparisons.
 
 ```
 UE_VERSION_BELOW(major, minor)
@@ -92,7 +99,7 @@ static bool IsABot(APlayerState* PS)
 }
 ```
 
-## PreBuild Scripts
+# Using Prebuild Scripts
 
 A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "magic" macros in preprocessor logic. Prebuild scripts allow you to work around this by taking advantage of a quirk in UnrealHeaderTool that allows `#if 1` and `#if 0` to wrap those "magic" macros.
 
@@ -102,11 +109,6 @@ A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "
 - `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h` (excluding the `WITHIN` macro). It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
 - `AllowDynamicVersionMacroReplacements` does the same thing as `MacroReplacements` but without requiring you to modify the dictionary. Instead, it will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h`. 
 - `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility.
-
-To add the build scripts to your own plugin:
-1. Copy the `Resources/BuildScripts/` folder to your plugin `Resources/` folder.
-2. Copy the `"PreBuildSteps"` section from `VersionMacros.uplugin` to your `.uplugin` file.
-3. Modify the prebuild scripts as needed for your plugin. Use the `PrebuildConfig.py` file to customize to your project needs.
 
 Here's how it works:
 1. When you start a build, your `.uplugin` file will execute its `"PreBuildSteps"` in your host platform shell.

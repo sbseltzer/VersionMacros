@@ -136,22 +136,51 @@ compile_time_assert(UE_VERSION_MAXIMUM(5,0));
 
 #endif
 
-#if 1 // !TEST_MACRO_A
+// NOTE: If you conditionally disable all UCLASS/USTRUCT declarations in a file, the .generated.h file won't exist!
+// The simplest solution is to declare an empty placeholder USTRUCT to ensure the .generated.h file always exists.
+// If your file only has one UCLASS/USTRUCT, you can simply move the .generated.h include inside the same #if block.
+
 #include "Test.generated.h"
 
+USTRUCT()
+struct FVersionMacrosPlaceholderStruct
+{
+	GENERATED_BODY()
+};
+
+// Test wrapping a USTRUCT
+#if 1 // !TEST_MACRO_B
+USTRUCT()
+struct FVersionMacrosTestStruct
+{
+	GENERATED_BODY()
+	
+	// Test wrapping a UPROPERTY
+#if 0 // TEST_MACRO_B
+	UPROPERTY()
+	bool TestProperty;
+#endif
+};
+#endif
+
+// Test wrapping a UCLASS
+#if 1 // !TEST_MACRO_A
 UCLASS()
 class UVersionMacrosTestObject : public UObject
 {
 public:
- GENERATED_BODY()
+	GENERATED_BODY()
 
-#if 1 // UE_VERSION_EQUAL(5,5)
- UPROPERTY()
- bool TestProperty1;
+	// Test wrapping a UFUNCTION
+#if 0 // TEST_MACRO
+	UFUNCTION()
+	void TestFunction() {}
 #endif
-#if 0 // TEST_MACRO_B
- UPROPERTY()
- bool TestProperty2;
+
+	// Test wrapping a UPROPERTY
+#if 1 // UE_VERSION_EQUAL(5,5)
+	UPROPERTY()
+	bool TestProperty;
 #endif
 };
 #endif

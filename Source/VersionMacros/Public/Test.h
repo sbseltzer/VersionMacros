@@ -127,13 +127,13 @@ compile_time_assert(!UE_VERSION_MAXIMUM(5,0));
 compile_time_assert(UE_VERSION_MAXIMUM(5,0));
 #endif
 
-#if 0 // UE_VERSION_WITHIN( 4,26, 5, 4)
+#  if   0 // UE_VERSION_WITHIN( 4,26, 5, 4)
 compile_time_assert(UE_VERSION_WITHIN( 4,26, 5, 4));
 #else
 compile_time_assert(!UE_VERSION_WITHIN( 4,26, 5, 4));
 #endif
 
-#if 0 // TEST_MACRO_C
+#  if   0 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
 #else
 compile_time_assert(!TEST_MACRO_C);

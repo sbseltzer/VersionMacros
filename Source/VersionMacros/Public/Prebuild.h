@@ -1,31 +1,30 @@
+/**
+* Version Macros for supporting projects that span multiple versions of Unreal.
+ * https://github.com/sbseltzer/VersionMacros
+ * 
+ * Copyright Sam Seltzer-Johnston 2025. All Rights Reserved.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+//===============================================================================
+// NOTE: This file is only for testing purposes. Do not copy it to your project!
+// See PrebuildTemplate.h for more information.
+//===============================================================================
+
 #pragma once
 #include "VersionMacros.h"
-
-/**
- * When referenced by CustomPrebuildHeaders in PrebuildConfig.py, the macro definitions in this file will be parsed and
- * evaluated before any compilation takes place. The results are dumped into the MacroReplacements dictionary.
- * Prebuild.py will then use the contents of that dictionary to modify specially annotated #if...#endif blocks.
- *
- * Example Prebuild.h:
- *	#define UE_5_3_OR_LATER UE_VERSION_MINIMUM(5, 3)
- *
- * Example MyClass.h:
- *	UCLASS()
- *	class UMyClass : public UObject
- *	{
- *		GENERATED_BODY()
- *		#if 1 // UE_5_3_OR_LATER
- *		UPROPERTY()
- *		bool TestProperty;
- *		#endif
- *	};
- *	
- * In the above example, the line "#if <0 or 1> // UE_5_3_OR_LATER" will be modified at prebuild time:
- * - Changes to "#if 1 // UE_5_3_OR_LATER" in UE versions 5.3 and later
- * - Changes to "#if 0 // UE_5_3_OR_LATER" in UE versions 5.2 and earlier
- * 
- * In short, this allows you to conditionally disable blocks of code that use Unreal's "magic" macros.
- */
 
 #define TEST_MACRO_A UE_VERSION_MAXIMUM(5, 0)
 #define TEST_MACRO_B UE_VERSION_BELOW(4, 27)

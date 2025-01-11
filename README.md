@@ -72,7 +72,7 @@ To add the prebuild scripts to your own plugin:
 1. Copy the [`Resources/BuildScripts/`](Resources/BuildScripts/) folder to your plugin `Resources/` folder.
 2. Copy the `"PreBuildSteps"` section from [`VersionMacros.uplugin`](VersionMacros.uplugin) to your `.uplugin` file.
 3. Modify the prebuild scripts as needed for your plugin. Use the [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) file to customize to your project needs. Disable the features you don't need to improve prebuild performance.
-4. (Optional) Add a `Prebuild.h` file to your plugin and update [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) to point to it in the `CustomPrebuildHeaders` list. This plugin comes with a sample [`Prebuild.h`](Source/VersionMacros/Public/Prebuild.h) file.
+4. (Optional) Add a `Prebuild.h` file to your plugin and update [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) to point to it in the `CustomPrebuildHeaders` list. This plugin comes with a sample [`PrebuildTemplate.h`](Source/VersionMacros/Public/PrebuildTemplate.h) file.
 
 # Using VersionMacros.h
 

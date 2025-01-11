@@ -4,9 +4,9 @@ This repository has 2 things that help with multi-version support in Unreal code
 - The [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) header file
 - [Prebuild scripts](Resources/BuildScripts) that work around preprocessor limitations in UnrealHeaderTool
 
-Both are optional and independent of one another.
+Both are optional and independent of one another. [Installing this to your own plugins](#installation) involves copying the relevant files over and modifying them. The VersionMacros plugin itself is for testing/documentation purposes.
 
-I use these on my personal collection of plugins across various versions of UE4 and UE5. I sometimes needed to backport modern UE features, which normally is not possible with preprocessor macros alone.
+I use these macros and prebuild scripts on my own plugins across various versions of UE4 and UE5. Sometimes I needed to backport modern UE features, which is usually not possible with preprocessor macros alone.
 
 ## VersionMacros.h
 
@@ -26,27 +26,37 @@ My all-time favorites are `UE_VERSION_MINIMUM` and `UE_VERSION_MAXIMUM`, but I'v
 
 ## Prebuild Scripts
 
-A notable limitation of preprocessor macros in Unreal is you can't wrap Unreal "magic" macros in preprocessor logic. Prebuild scripts allow you to work around this by taking advantage of a quirk in UnrealHeaderTool that allows `#if 1` and `#if 0` to wrap those "magic" macros.
+A notable limitation of preprocessor macros in Unreal is you can't wrap "magic" macros (`UCLASS`, `USTRUCT`, `UPROPERTY`, `UFUNCTION`) in preprocessor logic. However, UnrealHeaderTool allows `#if 1` and `#if 0` to wrap their "magic" macros. Prebuild scripts take advantage of that to work around those limitations.
+
+Another common compatibility issue between UE4/UE5 is `TObjectPtr`. The prebuild scripts have a feature to automatically convert those to raw pointers in UE4 builds.
+
+When configured in your `.uplugin` file, prebuild scripts will automatically execute whenever you compile.
+
+[Jump to prebuild examples](#using-prebuild-scripts)
+
+### Prebuild Features
 
 [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) gives you options to take advantage of this, plus some other goodies:
 
 - `MacroReplacements` is a dictionary where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version.
-- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h` (excluding the `WITHIN` macro). It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
-- `AllowDynamicVersionMacroReplacements` does the same thing as `MacroReplacements` but without requiring you to modify the dictionary. Instead, it will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h`.
-- `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility.
+- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h`. It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
+- `AllowDynamicVersionMacroReplacements` will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h` and change between `1` and `0` according to your engine version.
+- `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility. In UE4 it will replace all `TObjectPtr<T>` with `T* /* TObjectPtr */`. In UE5 it will replace all `T* /* TObjectPtr */`with `TObjectPtr<T>`.
+
+By default, all features are enabled. Disable the ones you don't need to speed up the prebuild phase.
+
+### Prebuild Implementation
 
 Here's how it works:
-1. When you start a build, your `.uplugin` file will execute its `"PreBuildSteps"` in your host platform shell.
+1. When you start a build, Unreal parses your `.uplugin` file and execute its `"PreBuildSteps"` in your host platform shell.
 2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them. The relevant variables are `EngineDir` and `PluginDir`.
 3. `PreBuildSteps` executes the shim script contained in `Resources/BuildScripts/<HostPlatform>/`. On Windows this is a Powershell script. On Mac/Linux it's a Bash script.
 4. The shim script first deduces your Unreal Engine version using the `Build.version` file in your engine directory.
-5. The shim script then deduces a reliable Python executable location. On Windows, it will use the Python that's bundled with Unreal according to your engine version. On Mac/Linux, it will search for an executable named `python3` or `python` using your environment `PATH`.
+5. The shim script then deduces a reliable Python executable location. On Windows, it will use the `python.exe` that's bundled with Unreal according to your engine version. On Mac/Linux, it will search for an executable named `python3` or `python` using your environment `PATH`.
 6. The shim script then executes [`Prebuild.py`](Resources/BuildScripts/Prebuild.py).
 7. [`Prebuild.py`](Resources/BuildScripts/Prebuild.py) performs text replacements in your plugin source files according to your engine version and your settings in [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py).
 
-The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
-
-[Jump to prebuild examples](#using-prebuild-scripts)
+The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one (and vice versa) and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
 
 # Installation
 
@@ -61,7 +71,8 @@ The [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) header file
 To add the prebuild scripts to your own plugin:
 1. Copy the [`Resources/BuildScripts/`](Resources/BuildScripts/) folder to your plugin `Resources/` folder.
 2. Copy the `"PreBuildSteps"` section from [`VersionMacros.uplugin`](VersionMacros.uplugin) to your `.uplugin` file.
-3. Modify the prebuild scripts as needed for your plugin. Use the [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) file to customize to your project needs.
+3. Modify the prebuild scripts as needed for your plugin. Use the [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) file to customize to your project needs. Disable the features you don't need to improve prebuild performance.
+4. (Optional) Add a `Prebuild.h` file to your plugin and update [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) to point to it in the `CustomPrebuildHeaders` list. This plugin comes with a sample [`Prebuild.h`](Source/VersionMacros/Public/Prebuild.h) file.
 
 # Using VersionMacros.h
 
@@ -234,12 +245,11 @@ Please file an issue if you run into a platform where this doesn't work.
 I've tested this in UE versions 4.12 to 5.x, but it should work in lower versions as well.
 
 Support Notes:
-- UE 4.14 and lower have some problems with wrapping entire `UCLASS` declarations in `#if 0` / `#if 1` preprocessor blocks.
-- UE 4.8 and lower do not bundle a Python executable, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
-
-Test Notes:
+- UE 4.14 sometimes has problems with wrapping entire `UCLASS` declarations in `#if 0` / `#if 1` preprocessor blocks, but can usually be resolved with a clean rebuild.
+- UE 4.12 and 4.13 wouldn't compile any `UCLASS`/`USTRUCT` declarations for me, so I have those test cases disabled on those versions of Unreal until I find out why.
 - I'm unable to test UE 4.10 and 4.11 until I can find a Visual Studio 2015 installer that doesn't include Update 3, which breaks builds on those versions of UE.
 - I'm unable to test UE 4.9 and lower. I was unable to install Visual Studio 2013 on my system due to an unspecified conflict.
+- UE 4.8 and lower do not bundle a Python executable on Windows, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.
 
 Please file an issue if you run into a version of Unreal where this doesn't work.
 

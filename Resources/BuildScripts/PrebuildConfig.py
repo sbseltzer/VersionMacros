@@ -11,7 +11,6 @@ ProcessDirs = [
 
 # Optional list of header file paths to auto-generate `MacroReplacements` for.
 # It will only consider simple #define directives that use the UE_VERSION_* macros from VersionMacros.h
-# It does not handle the UE_VERSION_WITHIN macro.
 # It does not actually compile the header file, so other includes and arithmatic/logical operators will be ignored.
 CustomPrebuildHeaders = [
     # Replace this with your own prebuild header file (or remove it if you don't plan to use one)
@@ -19,7 +18,6 @@ CustomPrebuildHeaders = [
 ]
 
 # Whether to interpret macro replacements of the form `#if <0 or 1> // UE_VERSION_*(major,minor)`
-# It does not handle the UE_VERSION_WITHIN macro.
 AllowDynamicVersionMacroReplacements = True
 
 # Whether to replace TObjectPtr<T> with T* on UE4 builds (includes annotation for reversibility)

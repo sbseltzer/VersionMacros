@@ -83,16 +83,30 @@ def do_comparison(version, compare):
     exit(1)
 
 def parse_prebuild_header_line(line):
-    match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\))', line)
+    match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*UE_VERSION_(\w+)\s*\(([\s\d,]+))', line)
     if match:
         macro_name = match.group(1)
         is_negated = match.group(3) == '!'
-        comparison_string = match.group(4)
-        version = match.group(5) + "." + match.group(6)
+        comparison_name = match.group(4)
+        args_string = match.group(5)
+        args = re.split(r',', args_string, 3)
+        num_args = len(args)
+        version_matches = False
+        if num_args == 2:
+            [major, minor] = args
+            version = str(int(major)) + "." + str(int(minor))
+            version_matches = (do_comparison(version, comparison_name) != is_negated)
+        elif num_args == 4 and (OperatorStringToID.get(comparison_name) == WITHIN):
+            [min_major, min_minor, max_major, max_minor] = args
+            min_version = str(int(min_major)) + "." + str(int(min_minor))
+            max_version = str(int(max_major)) + "." + str(int(max_minor))
+            version_matches = ((do_comparison(min_version, MINIMUM) and do_comparison(max_version, MAXIMUM)) != is_negated)
+        else:
+            print("Error: INVALID NUMBER OF ARGS " + num_args)
+            exit(1)
         PrebuildConfig.MacroReplacements[macro_name] = {
-            "Version": version,
             "MatchFiles": PrebuildConfig.MatchHeaderFiles,
-            "EvaluatedTo": is_negated != do_comparison(version, comparison_string)
+            "EvaluatedTo": version_matches
         }
 
 def parse_prebuild_header(path):
@@ -133,20 +147,35 @@ def handle_dynamic_fake_macro_replacement(file_path, line):
             should_replace = True
             break
     if should_replace:
-        match = re.search(r'^\s*#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', new_line)
+        match = re.search(r'^\s*#if (\d)\s*//\s*(!?)UE_VERSION_(\w+)\s*\(([\s\d,]+)\)', new_line)
         if match:
+            is_dynamic_macro_replacement = True
             current_literal_expression = int(match.group(1))
             is_negated = match.group(2) == '!'
             comparison_name = match.group(3)
-            is_dynamic_macro_replacement = True
-            version = match.group(4) + "." + match.group(5)
-            if (do_comparison(version, comparison_name) != is_negated):
+            args_string = match.group(4)
+            args = re.split(r',', args_string, 3)
+            num_args = len(args)
+            version_matches = False
+            if num_args == 2:
+                [major, minor] = args
+                version = str(int(major)) + "." + str(int(minor))
+                version_matches = (do_comparison(version, comparison_name) != is_negated)
+            elif num_args == 4 and (OperatorStringToID.get(comparison_name) == WITHIN):
+                [min_major, min_minor, max_major, max_minor] = args
+                min_version = str(int(min_major)) + "." + str(int(min_minor))
+                max_version = str(int(max_major)) + "." + str(int(max_minor))
+                version_matches = ((do_comparison(min_version, MINIMUM) and do_comparison(max_version, MAXIMUM)) != is_negated)
+            else:
+                print("Error: INVALID NUMBER OF ARGS " + num_args)
+                exit(1)
+            if version_matches:
                 if (current_literal_expression == 0):
-                    new_line = re.sub(r'#if 0(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 1\1//\2\3', new_line)
+                    new_line = re.sub(r'#if 0', r'#if 1', new_line)
                     changed = True
             else:
                 if (current_literal_expression == 1):
-                    new_line = re.sub(r'#if 1(\s*)//(\s*)(!?UE_VERSION_\w+\s*\(\s*\d+\s*,\s*\d+\s*\))', r'#if 0\1//\2\3', new_line)
+                    new_line = re.sub(r'#if 1', r'#if 0', new_line)
                     changed = True
     return new_line, changed, is_dynamic_macro_replacement
                     
@@ -183,11 +212,11 @@ def handle_fake_macro_replacement(file_path, line):
                 replacement_info["EvaluatedTo"] = cached_comparison
             if (cached_comparison != is_negated):
                 if (current_literal_expression == 0):
-                    new_line = re.sub(r'#if 0(\s*)//(\s*)(!?\w+)', r'#if 1\1//\2\3', new_line)
+                    new_line = re.sub(r'#if 0', r'#if 1', new_line)
                     changed = True
             else:
                 if (current_literal_expression == 1):
-                    new_line = re.sub(r'#if 1(\s*)//(\s*)(!?\w+)', r'#if 0\1//\2\3', new_line)
+                    new_line = re.sub(r'#if 1', r'#if 0', new_line)
                     changed = True
         if not replacement_info:
             print("Failed to find Macro Replacement Info for " + macro_text)

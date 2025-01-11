@@ -18,5 +18,5 @@ OperatorStringToID = {
     '==': EQUAL,
     '>=': MINIMUM,
     '<=': MAXIMUM,
-    '><': WITHIN
+    '[]': WITHIN
 }

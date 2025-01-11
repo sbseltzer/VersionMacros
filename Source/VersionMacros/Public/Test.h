@@ -38,6 +38,138 @@
 // If any of the following asserts fail, it means something is wrong with the prebuild scripts
 //==============================================================================================
 
+#if 1 // UE_4_17_OR_LATER
+compile_time_assert(UE_4_17_OR_LATER);
+#else
+compile_time_assert(!UE_4_17_OR_LATER);
+#endif
+#if 0 // !UE_4_17_OR_LATER
+compile_time_assert(!UE_4_17_OR_LATER);
+#else
+compile_time_assert(UE_4_17_OR_LATER);
+#endif
+
+#if 1 // UE_4_18_OR_LATER
+compile_time_assert(UE_4_18_OR_LATER);
+#else
+compile_time_assert(!UE_4_18_OR_LATER);
+#endif
+#if 0 // !UE_4_18_OR_LATER
+compile_time_assert(!UE_4_18_OR_LATER);
+#else
+compile_time_assert(UE_4_18_OR_LATER);
+#endif
+
+#if 1 // UE_4_19_OR_LATER
+compile_time_assert(UE_4_19_OR_LATER);
+#else
+compile_time_assert(!UE_4_19_OR_LATER);
+#endif
+#if 0 // !UE_4_19_OR_LATER
+compile_time_assert(!UE_4_19_OR_LATER);
+#else
+compile_time_assert(UE_4_19_OR_LATER);
+#endif
+
+#if 1 // UE_4_20_OR_LATER
+compile_time_assert(UE_4_20_OR_LATER);
+#else
+compile_time_assert(!UE_4_20_OR_LATER);
+#endif
+#if 0 // !UE_4_20_OR_LATER
+compile_time_assert(!UE_4_20_OR_LATER);
+#else
+compile_time_assert(UE_4_20_OR_LATER);
+#endif
+
+#if 1 // UE_4_21_OR_LATER
+compile_time_assert(UE_4_21_OR_LATER);
+#else
+compile_time_assert(!UE_4_21_OR_LATER);
+#endif
+#if 0 // !UE_4_21_OR_LATER
+compile_time_assert(!UE_4_21_OR_LATER);
+#else
+compile_time_assert(UE_4_21_OR_LATER);
+#endif
+
+#if 1 // UE_4_22_OR_LATER
+compile_time_assert(UE_4_22_OR_LATER);
+#else
+compile_time_assert(!UE_4_22_OR_LATER);
+#endif
+#if 0 // !UE_4_22_OR_LATER
+compile_time_assert(!UE_4_22_OR_LATER);
+#else
+compile_time_assert(UE_4_22_OR_LATER);
+#endif
+
+#if 1 // UE_4_23_OR_LATER
+compile_time_assert(UE_4_23_OR_LATER);
+#else
+compile_time_assert(!UE_4_23_OR_LATER);
+#endif
+#if 0 // !UE_4_23_OR_LATER
+compile_time_assert(!UE_4_23_OR_LATER);
+#else
+compile_time_assert(UE_4_23_OR_LATER);
+#endif
+
+#if 1 // UE_4_24_OR_LATER
+compile_time_assert(UE_4_24_OR_LATER);
+#else
+compile_time_assert(!UE_4_24_OR_LATER);
+#endif
+#if 0 // !UE_4_24_OR_LATER
+compile_time_assert(!UE_4_24_OR_LATER);
+#else
+compile_time_assert(UE_4_24_OR_LATER);
+#endif
+
+#if 1 // UE_4_25_OR_LATER
+compile_time_assert(UE_4_24_OR_LATER);
+#else
+compile_time_assert(!UE_4_24_OR_LATER);
+#endif
+#if 0 // !UE_4_25_OR_LATER
+compile_time_assert(!UE_4_24_OR_LATER);
+#else
+compile_time_assert(UE_4_24_OR_LATER);
+#endif
+
+#if 1 // UE_4_25_OR_LATER
+compile_time_assert(UE_4_25_OR_LATER);
+#else
+compile_time_assert(!UE_4_25_OR_LATER);
+#endif
+#if 0 // !UE_4_25_OR_LATER
+compile_time_assert(!UE_4_25_OR_LATER);
+#else
+compile_time_assert(UE_4_25_OR_LATER);
+#endif
+
+#if 1 // UE_4_26_OR_LATER
+compile_time_assert(UE_4_26_OR_LATER);
+#else
+compile_time_assert(!UE_4_26_OR_LATER);
+#endif
+#if 0 // !UE_4_26_OR_LATER
+compile_time_assert(!UE_4_26_OR_LATER);
+#else
+compile_time_assert(UE_4_26_OR_LATER);
+#endif
+
+#if 1 // UE_4_27_OR_LATER
+compile_time_assert(UE_4_27_OR_LATER);
+#else
+compile_time_assert(!UE_4_27_OR_LATER);
+#endif
+#if 0 // !UE_4_27_OR_LATER
+compile_time_assert(!UE_4_27_OR_LATER);
+#else
+compile_time_assert(UE_4_27_OR_LATER);
+#endif
+
 #if 1 // UE_5_0_OR_LATER
 compile_time_assert(UE_5_0_OR_LATER);
 #else
@@ -49,6 +181,39 @@ compile_time_assert(!UE_5_0_OR_LATER);
 compile_time_assert(UE_5_0_OR_LATER);
 #endif
 
+#if 1 // UE_5_1_OR_LATER
+compile_time_assert(UE_5_1_OR_LATER);
+#else
+compile_time_assert(!UE_5_1_OR_LATER);
+#endif
+#if 0 // !UE_5_1_OR_LATER
+compile_time_assert(!UE_5_1_OR_LATER);
+#else
+compile_time_assert(UE_5_1_OR_LATER);
+#endif
+
+#if 1 // UE_5_2_OR_LATER
+compile_time_assert(UE_5_2_OR_LATER);
+#else
+compile_time_assert(!UE_5_2_OR_LATER);
+#endif
+#if 0 // !UE_5_2_OR_LATER
+compile_time_assert(!UE_5_2_OR_LATER);
+#else
+compile_time_assert(UE_5_2_OR_LATER);
+#endif
+
+#if 1 // UE_5_3_OR_LATER
+compile_time_assert(UE_5_3_OR_LATER);
+#else
+compile_time_assert(!UE_5_3_OR_LATER);
+#endif
+#if 0 // !UE_5_3_OR_LATER
+compile_time_assert(!UE_5_3_OR_LATER);
+#else
+compile_time_assert(UE_5_3_OR_LATER);
+#endif
+
 #if 1 // UE_5_4_OR_LATER
 compile_time_assert(UE_5_4_OR_LATER);
 #else
@@ -58,6 +223,17 @@ compile_time_assert(!UE_5_4_OR_LATER);
 compile_time_assert(!UE_5_4_OR_LATER);
 #else
 compile_time_assert(UE_5_4_OR_LATER);
+#endif
+
+#if 1 // UE_5_5_OR_LATER
+compile_time_assert(UE_5_5_OR_LATER);
+#else
+compile_time_assert(!UE_5_5_OR_LATER);
+#endif
+#if 0 // !UE_5_5_OR_LATER
+compile_time_assert(!UE_5_5_OR_LATER);
+#else
+compile_time_assert(UE_5_5_OR_LATER);
 #endif
 
 #define TEST_MACRO UE_5_0_OR_EARLIER

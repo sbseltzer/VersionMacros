@@ -315,6 +315,15 @@ compile_time_assert(TEST_MACRO_C);
 compile_time_assert(!TEST_MACRO_C);
 #endif
 
+#  if   0 // TEST_MACRO_C
+compile_time_assert(TEST_MACRO_C);
+#  elif   1 // !TEST_MACRO_B
+compile_time_assert(!TEST_MACRO_B);
+#else
+compile_time_assert(!TEST_MACRO_C);
+compile_time_assert(TEST_MACRO_B);
+#endif
+
 #endif
 
 //================================================================================================================

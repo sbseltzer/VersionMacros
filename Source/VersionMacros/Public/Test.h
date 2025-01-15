@@ -305,24 +305,24 @@ compile_time_assert(UE_VERSION_MAXIMUM(5,0));
 
 #  if   0 // UE_VERSION_WITHIN( 4,26, 5, 4)
 compile_time_assert(UE_VERSION_WITHIN( 4,26, 5, 4));
-#else
+#  else
 compile_time_assert(!UE_VERSION_WITHIN( 4,26, 5, 4));
-#endif
+#  endif
 
 #  if   0 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
-#else
+#  else
 compile_time_assert(!TEST_MACRO_C);
-#endif
+#  endif
 
 #  if   0 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
 #  elif   1 // !TEST_MACRO_B
 compile_time_assert(!TEST_MACRO_B);
-#else
+#  else
 compile_time_assert(!TEST_MACRO_C);
 compile_time_assert(TEST_MACRO_B);
-#endif
+#  endif
 
 #endif
 

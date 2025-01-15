@@ -172,11 +172,17 @@ def handle_dynamic_fake_macro_replacement(file_path, line):
                 exit(1)
             if version_matches:
                 if (current_literal_expression == 0):
-                    new_line = re.sub(r'#(\s*)(el)?if(\s+)0', r'#\1\2if\g<3>1', new_line)
+                    if elif_prefix:
+                        new_line = re.sub(r'#(\s*)elif(\s+)0', r'#\1elif\g<2>1', new_line)
+                    else:
+                        new_line = re.sub(r'#(\s*)if(\s+)0', r'#\1if\g<2>1', new_line)
                     changed = True
             else:
                 if (current_literal_expression == 1):
-                    new_line = re.sub(r'#(\s*)(el)?if(\s+)1', r'#\1\2if\g<3>0', new_line)
+                    if elif_prefix:
+                        new_line = re.sub(r'#(\s*)elif(\s+)1', r'#\1elif\g<2>0', new_line)
+                    else:
+                        new_line = re.sub(r'#(\s*)if(\s+)1', r'#\1if\g<2>0', new_line)
                     changed = True
     return new_line, changed, is_dynamic_macro_replacement
                     
@@ -214,11 +220,17 @@ def handle_fake_macro_replacement(file_path, line):
                 replacement_info["EvaluatedTo"] = cached_comparison
             if (cached_comparison != is_negated):
                 if (current_literal_expression == 0):
-                    new_line = re.sub(r'#(\s*)(el)?if(\s+)0', r'#\1\2if\g<3>1', new_line)
+                    if elif_prefix:
+                        new_line = re.sub(r'#(\s*)elif(\s+)0', r'#\1elif\g<2>1', new_line)
+                    else:
+                        new_line = re.sub(r'#(\s*)if(\s+)0', r'#\1if\g<2>1', new_line)
                     changed = True
             else:
                 if (current_literal_expression == 1):
-                    new_line = re.sub(r'#(\s*)(el)?if(\s+)1', r'#\1\2if\g<3>0', new_line)
+                    if elif_prefix:
+                        new_line = re.sub(r'#(\s*)elif(\s+)1', r'#\1elif\g<2>0', new_line)
+                    else:
+                        new_line = re.sub(r'#(\s*)if(\s+)1', r'#\1if\g<2>0', new_line)
                     changed = True
         if not replacement_info:
             print("Failed to find Macro Replacement Info for " + macro_text)

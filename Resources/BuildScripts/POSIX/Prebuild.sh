@@ -6,10 +6,10 @@ MinorVersion=$(< "$BuildVersionFile" grep -o '"MinorVersion".*,' | grep -o '\d*'
 PythonExe=$(where python3)
 if [ ! -f "$PythonExe" ]; then
     PythonExe=$(where python)
-fi
-if [ ! -f "$PythonExe" ]; then
-    echo "Failed to find Python! Please be sure it's installed to execute prebuild scripts."
-    exit 1
+    if [ ! -f "$PythonExe" ]; then
+        echo "Failed to find Python! Please be sure it's installed to execute prebuild scripts."
+        exit 1
+    fi
 fi
 export UEMajorVersion=$MajorVersion
 export UEMinorVersion=$MinorVersion

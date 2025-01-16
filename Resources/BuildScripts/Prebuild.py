@@ -242,13 +242,16 @@ def replace_line_in_file(file_path, line):
     is_dynamic_macro_replacement = False
     # TObjectPtr replacement
     if PrebuildConfig.AllowObjectPtrReplacements:
-        [new_line, changed] = handle_object_ptr_replacement(file_path, new_line)
+        [new_line, obj_ptr_changed] = handle_object_ptr_replacement(file_path, new_line)
+        changed = changed or obj_ptr_changed
     # Fake macro replacement (UE_VERSION_* form)
     if PrebuildConfig.AllowDynamicVersionMacroReplacements:
-        [new_line, changed, is_dynamic_macro_replacement] = handle_dynamic_fake_macro_replacement(file_path, new_line)
+        [new_line, dyn_macro_changed, is_dynamic_macro_replacement] = handle_dynamic_fake_macro_replacement(file_path, new_line)
+        changed = changed or dyn_macro_changed
     # Fake macro replacement (user-defined form)
     if not is_dynamic_macro_replacement:
-        [new_line, changed] = handle_fake_macro_replacement(file_path, new_line)
+        [new_line, fake_macro_changed] = handle_fake_macro_replacement(file_path, new_line)
+        changed = changed or fake_macro_changed
     if (changed):
         print("Changed:\n  " + line + "To:\n  " + new_line)
     return new_line, changed

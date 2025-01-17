@@ -235,8 +235,8 @@ def handle_fake_macro_replacement(file_path, line):
         if not replacement_info:
             print("Failed to find Macro Replacement Info for " + macro_text)
     return new_line, changed
-    
-def replace_line_in_file(file_path, line):
+
+def replace_line_in_file(file_path, line_num, line):
     changed = False
     new_line = line
     is_dynamic_macro_replacement = False
@@ -253,15 +253,17 @@ def replace_line_in_file(file_path, line):
         [new_line, fake_macro_changed] = handle_fake_macro_replacement(file_path, new_line)
         changed = changed or fake_macro_changed
     if (changed):
-        print("Changed:\n  " + line + "To:\n  " + new_line)
+        print(file_path + ":" + str(line_num) + "\nChanged:\n  " + line + "To:\n  " + new_line)
     return new_line, changed
 
 def replace_in_file(file_path):
     input_file = io.open(file_path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     output_file = io.open(file_path + ".new", 'w', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     any_replaced = False
+    line_num = 0
     for line in input_file:
-        new_line, changed = replace_line_in_file(file_path, line)
+        line_num += 1
+        new_line, changed = replace_line_in_file(file_path, line_num, line)
         any_replaced = any_replaced or changed
         output_file.write(new_line)
     input_file.close()

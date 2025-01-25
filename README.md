@@ -22,6 +22,8 @@ UE_VERSION_WITHIN(major_min, minor_min, major_max, minor_max)
 ```
 My all-time favorites are `UE_VERSION_MINIMUM` and `UE_VERSION_MAXIMUM`, but I've used all of them at some point or another.
 
+**Technical Note:** When more than one plugin has a `VersionMacros.h` file, attempting to include it in a dependent project will use the first one found among dependencies listed in the `.Build.cs` file. You can disambiguate between them by specifying the plugin in the path when including it (i.e. `MyPlugin/Public/VersionMacros.h`), or by simply renaming the header file with a prefix related to your plugin (i.e. `MyPluginVersionMacros.h`). In any case, you shouldn't have to worry about multiple plugins conflicting with each other.
+
 [Jump to macro examples](#using-versionmacrosh)
 
 ## Prebuild Scripts
@@ -52,11 +54,20 @@ Here's how it works:
 2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them. The relevant variables are `EngineDir` and `PluginDir`.
 3. `PreBuildSteps` executes the shim script contained in `Resources/BuildScripts/<HostPlatform>/`. On Windows this is a Powershell script. On Mac/Linux it's a Bash script.
 4. The shim script first deduces your Unreal Engine version using the `Build.version` file in your engine directory.
-5. The shim script then deduces a reliable Python executable location. On Windows, it will use the `python.exe` that's bundled with Unreal according to your engine version. On Mac/Linux, it will search for an executable named `python3` or `python` using your environment `PATH`.
+5. The shim script then deduces a reliable Python executable location. On Windows, it will use the `python.exe` that's bundled with Unreal according to your engine version. If that fails (i.e. UE 4.8 or lower), it will search your environment `PATH` for `python.exe` or `python3.exe` (in that order), with some special handling for the fake Windows `python3` shim. On Mac/Linux, it will search for an executable named `python3` or `python` (in that order) using your environment `PATH`.
 6. The shim script then executes [`Prebuild.py`](Resources/BuildScripts/Prebuild.py).
 7. [`Prebuild.py`](Resources/BuildScripts/Prebuild.py) performs text replacements in your plugin source files according to your engine version and your settings in [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py).
 
 The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one (and vice versa) and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
+
+### Technical Notes for PrebuildConfig.py
+
+- `SourceFileEncoding` is passed to `io.open` as the `encoding` option when reading/writing source files.
+- `EncodingErrorHandling` is passed to `io.open` as the `errors` option when reading/writing source files.
+- `ProcessDirs` is a list of directories to recursively perform replacements in. The more specific you are here, the faster the prebuild script will complete. By default, it does replacements in every file under the plugin `Source` directory. It's not a bad idea to replace that with more specific directories with files you care about.
+- `MatchHeaderFiles` is a regex pattern list for header files (`.h`). These are used to determine which files to perform "fake" macro replacements in by default.
+- `MatchImplementationFiles` is a regex pattern list for implementation files (`.cpp`). These are used in conjunction with `MatchHeaderFiles` to determine which files to perform `TObjectPtr` replacements in.
+- `MatchAllSourceFiles` is the combination of `MatchHeaderFiles` and `MatchImplementationFiles`.
 
 # Installation
 
@@ -217,16 +228,6 @@ The above configuration will do the following:
 Some other possible use-cases:
 - Adding version-specific `UFUNCTION`/`USTRUCT` declarations
 - Changing how a `UPROPERTY` is declared, such as whether to use `TObjectPtr<>` (introduced in UE 5.0) vs a raw pointer
-
-### Technical Notes for PrebuildConfig.py
-
-File Handling:
-- `SourceFileEncoding` is passed to `io.open` as the `encoding` option when reading/writing source files.
-- `EncodingErrorHandling` is passed to `io.open` as the `errors` option when reading/writing source files.
-- `ProcessDirs` is a list of directories to recursively perform replacements in. The more specific you are here, the faster the prebuild script will complete. By default, it does replacements in every file under the plugin `Source` directory. It's not a bad idea to replace that with more specific directories with files you care about.
-- `MatchHeaderFiles` is a regex pattern list for header files (`.h`). These are used to determine which files to perform "fake" macro replacements in by default.
-- `MatchImplementationFiles` is a regex pattern list for implementation files (`.cpp`). These are used in conjunction with `MatchHeaderFiles` to determine which files to perform `TObjectPtr` replacements in.
-- `MatchAllSourceFiles` is the combination of `MatchHeaderFiles` and `MatchImplementationFiles`.
 
 # Platform Support
 

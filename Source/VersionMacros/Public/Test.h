@@ -127,17 +127,6 @@ compile_time_assert(UE_4_24_OR_LATER);
 #endif
 
 #if 1 // UE_4_25_OR_LATER
-compile_time_assert(UE_4_24_OR_LATER);
-#else
-compile_time_assert(!UE_4_24_OR_LATER);
-#endif
-#if 0 // !UE_4_25_OR_LATER
-compile_time_assert(!UE_4_24_OR_LATER);
-#else
-compile_time_assert(UE_4_24_OR_LATER);
-#endif
-
-#if 1 // UE_4_25_OR_LATER
 compile_time_assert(UE_4_25_OR_LATER);
 #else
 compile_time_assert(!UE_4_25_OR_LATER);

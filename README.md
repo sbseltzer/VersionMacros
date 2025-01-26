@@ -2,7 +2,7 @@
 
 This repository has 2 things that help with multi-version support in Unreal code plugins:
 - The [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) header file
-- [Prebuild scripts](Resources/BuildScripts) that work around preprocessor limitations in UnrealHeaderTool
+- Automated [Prebuild scripts](Resources/BuildScripts) that work around preprocessor limitations in UnrealHeaderTool
 
 Both are optional and independent of one another. [Installing this to your own plugins](#installation) involves copying the relevant files over and modifying them. The VersionMacros plugin itself is for testing/documentation purposes.
 

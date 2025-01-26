@@ -23,9 +23,9 @@ import io
 import PrebuildConfig
 from PrebuildConst import *
 
-# Environment Variables
+# Environment Variables (set by PreBuildSteps in .uplugin file)
 # PluginDir is used for source file path construction. Will assume current working directory if not set.
-PluginDir = os.environ['PluginDir'] or "."
+PluginDir = os.environ['PluginDir'] or os.path.curdir
 # You must either set EngineDir or UEMajorVersion/UEMinorVersion
 # EngineDir is used to deduce engine version when it isn't explicitly provided by UEMajorVersion/UEMinorVersion
 EngineDir = os.environ['EngineDir']
@@ -105,9 +105,18 @@ def parse_prebuild_header_line(line):
             print("Error: INVALID NUMBER OF ARGS " + num_args)
             exit(1)
         PrebuildConfig.MacroReplacements[macro_name] = {
-            "MatchFiles": PrebuildConfig.MatchHeaderFiles,
+            "MatchFiles": type(PrebuildConfig.MacroReplacements.get(macro_name)) == dict and PrebuildConfig.MacroReplacements[macro_name].get("MatchFiles") or PrebuildConfig.MatchHeaderFiles,
             "EvaluatedTo": version_matches
         }
+    else:
+        match = re.search(r'#define\s+([\w_\d]+)\s+([01])', line)
+        if match:
+            macro_name = match.group(1)
+            constant_value = match.group(2)
+            PrebuildConfig.MacroReplacements[macro_name] = {
+                "MatchFiles": type(PrebuildConfig.MacroReplacements.get(macro_name)) == dict and PrebuildConfig.MacroReplacements[macro_name].get("MatchFiles") or PrebuildConfig.MatchHeaderFiles,
+                "EvaluatedTo": bool(int(constant_value))
+            }
 
 def parse_prebuild_header(path):
     header_file = io.open(path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
@@ -197,9 +206,30 @@ def handle_fake_macro_replacement(file_path, line):
         is_negated = match.group(3) == '!'
         macro_text = match.group(4)
         replacement_info = PrebuildConfig.MacroReplacements.get(macro_text)
-        match_files = replacement_info and replacement_info.get('MatchFiles') or PrebuildConfig.MatchHeaderFiles
+        if replacement_info != None:
+            if type(replacement_info) == str:
+                if replacement_info.isdigit():
+                    PrebuildConfig.MacroReplacements[macro_text] = {"EvaluatedTo": bool(int(replacement_info))}
+                else:
+                    parse_prebuild_header_line("#define " + macro_text + " " + replacement_info)
+            elif type(replacement_info) == bool:
+                PrebuildConfig.MacroReplacements[macro_text] = {"EvaluatedTo": replacement_info}
+            elif type(replacement_info) == int:
+                PrebuildConfig.MacroReplacements[macro_text] = {"EvaluatedTo": bool(replacement_info)}
+            else:
+                replacement_value = type(replacement_info) == dict and replacement_info.get("Value") or replacement_info
+                if replacement_value != None:
+                    if type(replacement_value) == str:
+                        if replacement_value.isdigit() and int(replacement_value) != 0:
+                            PrebuildConfig.MacroReplacements[macro_text] = {"EvaluatedTo": True}
+                        else:
+                            parse_prebuild_header_line("#define " + macro_text + " " + replacement_value)
+                    elif type(replacement_value) == int and int(replacement_value) != 0:
+                        PrebuildConfig.MacroReplacements[macro_text] = {"EvaluatedTo": True}
+        replacement_info = PrebuildConfig.MacroReplacements.get(macro_text)
+        match_files = type(replacement_info) == dict and replacement_info.get('MatchFiles') or PrebuildConfig.MatchHeaderFiles
         should_replace = replacement_info != None
-        if (match_files and len(match_files) > 0):
+        if (should_replace and match_files and len(match_files) > 0):
             should_replace = False
             for pattern in match_files:
                 if (re.match(pattern, file_path)):
@@ -286,9 +316,12 @@ def do_replacements_in_directory_recursive(directory):
         elif os.path.isfile(path):
             replace_in_file(path)
 
+PluginName = os.path.basename(PluginDir)
 for path in PrebuildConfig.CustomPrebuildHeaders:
+    path = path.replace("{PluginName}", PluginName)
     if os.path.exists(path):
         parse_prebuild_header(path)
 
 for dir in PrebuildConfig.ProcessDirs:
+    dir = dir.replace("{PluginName}", PluginName)
     do_replacements_in_directory_recursive(os.path.join(PluginDir, dir))

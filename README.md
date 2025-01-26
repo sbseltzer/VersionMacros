@@ -40,8 +40,8 @@ When configured in your `.uplugin` file, prebuild scripts will automatically exe
 
 [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) gives you options to take advantage of this, plus some other goodies:
 
-- `MacroReplacements` is a dictionary where you can configure "fake" version macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version.
-- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider simple `#define` directives that use the `UE_VERSION_*` macros seen in `VersionMacros.h`. It does not actually compile the header file, so complex macros that use arithmatic or logical operators will be ignored.
+- `MacroReplacements` is a dictionary where you can configure "fake" macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version or a constant value you've specified.
+- `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider `#define` directives that use a constant (`1` or `0`) value, or the `UE_VERSION_*` macros seen in `VersionMacros.h`. It does not actually compile the header file, so complex macros that use arithmatic/logical operators or that depend on other headers (besides `VersionMacros.h`) will be ignored.
 - `AllowDynamicVersionMacroReplacements` will interpret lines of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` to match the macros defined in `VersionMacros.h` and change between `1` and `0` according to your engine version.
 - `AllowObjectPtrReplacements` provides backward/forward compatibility with `TObjectPtr`, which is a common issue for UE4/UE5 cross-compatibility. In UE4 it will replace all `TObjectPtr<T>` with `T* /* TObjectPtr */`. In UE5 it will replace all `T* /* TObjectPtr */`with `TObjectPtr<T>`.
 

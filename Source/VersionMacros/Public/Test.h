@@ -225,12 +225,12 @@ compile_time_assert(!UE_5_4_OR_LATER);
 compile_time_assert(UE_5_4_OR_LATER);
 #endif
 
-#if 1 // UE_5_5_OR_LATER
+#if 0 // UE_5_5_OR_LATER
 compile_time_assert(UE_5_5_OR_LATER);
 #else
 compile_time_assert(!UE_5_5_OR_LATER);
 #endif
-#if 0 // !UE_5_5_OR_LATER
+#if 1 // !UE_5_5_OR_LATER
 compile_time_assert(!UE_5_5_OR_LATER);
 #else
 compile_time_assert(UE_5_5_OR_LATER);
@@ -303,19 +303,67 @@ compile_time_assert(!UE_VERSION_MAXIMUM(5,0));
 compile_time_assert(UE_VERSION_MAXIMUM(5,0));
 #endif
 
-#  if   0 // UE_VERSION_WITHIN( 4,26, 5, 4)
+#define TEST_MACRO_CONCISE UE_VERSION_MINIMUM(5,0)
+#if 1 // TEST_MACRO_CONCISE
+compile_time_assert(TEST_MACRO_CONCISE);
+#else
+compile_time_assert(!TEST_MACRO_CONCISE);
+#endif
+#if 0 // !TEST_MACRO_CONCISE
+compile_time_assert(!TEST_MACRO_CONCISE);
+#else
+compile_time_assert(TEST_MACRO_CONCISE);
+#endif
+
+#define TEST_MACRO_CONST_STRING 1
+#if 1 // TEST_MACRO_CONST_STRING
+compile_time_assert(TEST_MACRO_CONST_STRING);
+#else
+compile_time_assert(!TEST_MACRO_CONST_STRING);
+#endif
+#if 0 // !TEST_MACRO_CONST_STRING
+compile_time_assert(!TEST_MACRO_CONST_STRING);
+#else
+compile_time_assert(TEST_MACRO_CONST_STRING);
+#endif
+
+#define TEST_MACRO_CONST_INT 1
+#if 1 // TEST_MACRO_CONST_INT
+compile_time_assert(TEST_MACRO_CONST_INT);
+#else
+compile_time_assert(!TEST_MACRO_CONST_INT);
+#endif
+#if 0 // !TEST_MACRO_CONST_INT
+compile_time_assert(!TEST_MACRO_CONST_INT);
+#else
+compile_time_assert(TEST_MACRO_CONST_INT);
+#endif
+
+#define TEST_MACRO_CONST_BOOL 1
+#if 1 // TEST_MACRO_CONST_BOOL
+compile_time_assert(TEST_MACRO_CONST_BOOL);
+#else
+compile_time_assert(!TEST_MACRO_CONST_BOOL);
+#endif
+#if 0 // !TEST_MACRO_CONST_BOOL
+compile_time_assert(!TEST_MACRO_CONST_BOOL);
+#else
+compile_time_assert(TEST_MACRO_CONST_BOOL);
+#endif
+
+#  if   1 // UE_VERSION_WITHIN( 4,26, 5, 4)
 compile_time_assert(UE_VERSION_WITHIN( 4,26, 5, 4));
 #  else
 compile_time_assert(!UE_VERSION_WITHIN( 4,26, 5, 4));
 #  endif
 
-#  if   0 // TEST_MACRO_C
+#  if   1 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
 #  else
 compile_time_assert(!TEST_MACRO_C);
 #  endif
 
-#  if   0 // TEST_MACRO_C
+#  if   1 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
 #  elif   1 // !TEST_MACRO_B
 compile_time_assert(!TEST_MACRO_B);
@@ -323,6 +371,18 @@ compile_time_assert(!TEST_MACRO_B);
 compile_time_assert(!TEST_MACRO_C);
 compile_time_assert(TEST_MACRO_B);
 #  endif
+
+#if 1 // TEST_MACRO_D
+compile_time_assert(TEST_MACRO_D);
+#else
+compile_time_assert(!TEST_MACRO_D);
+#endif
+
+#if 0 // TEST_MACRO_E
+compile_time_assert(TEST_MACRO_E);
+#else
+compile_time_assert(!TEST_MACRO_E);
+#endif
 
 #endif
 
@@ -382,7 +442,7 @@ public:
 #endif
 
 	// Test wrapping a UPROPERTY
-#if 1 // UE_VERSION_EQUAL(5,5)
+#if 0 // UE_VERSION_EQUAL(5,5)
 	UPROPERTY()
 	bool TestProperty;
 #endif

@@ -10,11 +10,11 @@ ProcessDirs = [
 ]
 
 # Optional list of header file paths to auto-generate `MacroReplacements` for.
-# It will only consider simple #define directives that use the UE_VERSION_* macros from VersionMacros.h
+# It supports simple #define directives that use the UE_VERSION_* macros from VersionMacros.h
+# It also supports constant (1 or 0) values.
 # It does not actually compile the header file, so other includes and arithmatic/logical operators will be ignored.
 CustomPrebuildHeaders = [
-    # Replace this with your own prebuild header file (or remove it if you don't plan to use one)
-    "Source/VersionMacros/Public/Prebuild.h"
+    "Source/{PluginName}/Public/Prebuild.h"
 ]
 
 # Whether to interpret macro replacements of the form `#if <0 or 1> // UE_VERSION_*(major,minor)`
@@ -40,7 +40,18 @@ MacroReplacements = {
         "Compare": '<=', # Comparison to make (in this case it will evaluate EngineVersion <= 5.0)
         "MatchFiles": [r'.*/VersionMacros.cpp', r'.*/Test.h'] # (Optional) Files to restrict replacements to
     },
+    # Here are more concise ways you could specify a fake macro for >= 5.0
+    "TEST_MACRO_CONCISE": "UE_VERSION_MINIMUM(5,0)",
+    "TEST_MACRO_CONCISE_WITH_FILES": {
+        "Value": "UE_VERSION_MINIMUM(5,0)",
+        "MatchFiles": MatchAllSourceFiles
+    },
+    # Here are ways you can specify a constant value
+    "TEST_MACRO_CONST_STRING": "1",
+    "TEST_MACRO_CONST_INT": 1,
+    "TEST_MACRO_CONST_BOOL": True,
 }
+DefaultMacroReplacementFiles = MatchHeaderFiles
 
 # Passed to io.open() as the encoding option
 # Modify this value to match the encoding your project uses if you run into Python errors that mention decoding

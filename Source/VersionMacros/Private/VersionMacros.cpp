@@ -169,6 +169,18 @@ compile_time_assert(!TEST_MACRO);
 compile_time_assert(TEST_MACRO);
 #endif
 
+#define TEST_MACRO_CONCISE_WITH_FILES UE_VERSION_MINIMUM(5,0)
+#if 1 // TEST_MACRO_CONCISE_WITH_FILES
+compile_time_assert(TEST_MACRO_CONCISE_WITH_FILES);
+#else
+compile_time_assert(!TEST_MACRO_CONCISE_WITH_FILES);
+#endif
+#if 0 // !TEST_MACRO_CONCISE_WITH_FILES
+compile_time_assert(!TEST_MACRO_CONCISE_WITH_FILES);
+#else
+compile_time_assert(TEST_MACRO_CONCISE_WITH_FILES);
+#endif
+
 #endif
 
 // Bare minimum code plugin

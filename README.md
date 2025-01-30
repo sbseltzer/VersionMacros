@@ -1,12 +1,12 @@
 # What this is
 
-This repository has 2 things that help with multi-version support in Unreal code plugins:
+This repository has 2 things that help with multi-version support in Unreal Engine code plugins:
 - The [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) header file
 - Automated [Prebuild scripts](Resources/BuildScripts) that work around preprocessor limitations in UnrealHeaderTool
 
 Both are optional and independent of one another. [Installing this to your own plugins](#installation) involves copying the relevant files over and modifying them. The VersionMacros plugin itself is for testing/documentation purposes.
 
-I use these macros and prebuild scripts on my own plugins across various versions of UE4 and UE5. Sometimes I needed to backport modern UE features, which is usually not possible with preprocessor macros alone.
+I use these macros and prebuild scripts on my own plugins across various versions of UE4 and UE5. Sometimes I needed to backport modern UE features without breaking forward-compatibility, which is usually not possible with preprocessor macros alone.
 
 ## VersionMacros.h
 
@@ -28,9 +28,9 @@ My all-time favorites are `UE_VERSION_MINIMUM` and `UE_VERSION_MAXIMUM`, but I'v
 
 ## Prebuild Scripts
 
-A notable limitation of preprocessor macros in Unreal is you can't wrap "magic" macros (`UCLASS`, `USTRUCT`, `UPROPERTY`, `UFUNCTION`) in preprocessor logic. However, UnrealHeaderTool allows `#if 1` and `#if 0` to wrap their "magic" macros. Prebuild scripts take advantage of that to work around those limitations.
-
-Another common compatibility issue between UE4/UE5 is `TObjectPtr`. The prebuild scripts have a feature to automatically convert those to raw pointers in UE4 builds.
+Some version portability problems can't be solved with preprocessor macros alone.
+1. A notable limitation of preprocessor macros in Unreal is you can't wrap "magic" macros (`UCLASS`, `USTRUCT`, `UPROPERTY`, `UFUNCTION`) in preprocessor logic. However, UnrealHeaderTool allows `#if 1` and `#if 0` to wrap their "magic" macros. Prebuild scripts take advantage of that to work around those limitations by annotating the `#if` directives with "fake macros" in specially formatted comments.
+2. Another common compatibility issue between UE4/UE5 is `TObjectPtr`. The prebuild scripts have a feature to automatically convert those to raw pointers in UE4 builds, and add an inline annotation to allow forward-compatibility when a user upgrades the engine version of their project.
 
 When configured in your `.uplugin` file, prebuild scripts will automatically execute whenever you compile.
 
@@ -50,15 +50,16 @@ By default, all features are enabled. Disable the ones you don't need to speed u
 ### Prebuild Implementation
 
 Here's how it works:
-1. When you start a build, Unreal parses your `.uplugin` file and execute its `"PreBuildSteps"` in your host platform shell.
+1. When you start a build, Unreal parses your `.uplugin` file and executes its `"PreBuildSteps"` in your host platform shell.
 2. `PreBuildSteps` exports variables from Unreal to the host shell environment so scripts can access them. The relevant variables are `EngineDir` and `PluginDir`.
 3. `PreBuildSteps` executes the shim script contained in `Resources/BuildScripts/<HostPlatform>/`. On Windows this is a Powershell script. On Mac/Linux it's a Bash script.
 4. The shim script first deduces your Unreal Engine version using the `Build.version` file in your engine directory.
 5. The shim script then deduces a reliable Python executable location. On Windows, it will use the `python.exe` that's bundled with Unreal according to your engine version. If that fails (i.e. UE 4.8 or lower), it will search your environment `PATH` for `python.exe` or `python3.exe` (in that order), with some special handling for the fake Windows `python3` shim. On Mac/Linux, it will search for an executable named `python3` or `python` (in that order) using your environment `PATH`.
 6. The shim script then executes [`Prebuild.py`](Resources/BuildScripts/Prebuild.py).
 7. [`Prebuild.py`](Resources/BuildScripts/Prebuild.py) performs text replacements in your plugin source files according to your engine version and your settings in [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py).
+8. The prebuild script will only modify source files that actually require changes, which makes it friendly with incremental builds. It also won't modify a source file if the script fails part-way through for some reason, meaning you don't need to worry about data loss if the script blows up. That shouldn't happen anyway, but there's a safeguard against it just in case.
 
-The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one (and vice versa) and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in your `.uplugin` file `"Plugins"` section.
+The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted from a newer version of Unreal to an older one (and vice versa) and still compile! At least as long as you're diligent about `#if`ing out newer dependency references in your `.Build.cs` files and using the `Optional` field for newer dependencies in the `"Plugins"` section of your `.uplugin` file
 
 ### Technical Notes for PrebuildConfig.py
 
@@ -149,11 +150,11 @@ static bool IsABot(APlayerState* PS)
 
 ### Example 1: Disabling a UPROPERTY on certain versions of Unreal
 
-Let's say I've defined `SHOULD_MY_PROPERTY_EXIST` as `UE_VERSION_MINIMUM(5,5)` and want to hide a specific `UPROPERTY` on earlier engine versions.
+Let's say I have a property that should only exist for Unreal 5.3 and later.
 
 The following would give a compile error:
 ```c++
-#if SHOULD_MY_PROPERTY_EXIST
+#if UE_VERSION_MINIMUM(5,3)
 UPROPERTY()
 bool MyProperty = true;
 #endif
@@ -162,82 +163,155 @@ Sadly, UnrealHeaderTool forbids it. I'm not sure why exactly, but I'm sure Epic 
 
 To overcome this limitation when supporting plugins that span many versions of Unreal, I do something like this instead:
 ```c++
+#if 1 // UE_VERSION_MINIMUM(5,3)
+UPROPERTY()
+bool MyProperty = true;
+#endif
+```
+The above code is allowed!
+
+When the prebuild script sees a line of the form `#if <0 or 1> // UE_VERSION_*(major,minor)` it will automatically switch between `1` (enabled) and `0` (disabled) depending on the macro you used.
+
+If you wanted to use a custom macro name for it (which is more efficient) the easiest way to do it is to add a `Prebuild.h` file to your plugin's `Public` source files.
+
+Example `Prebuild.h`:
+```c++
+#pragma once
+#include "VersionMacros.h"
+
+#define SHOULD_MY_PROPERTY_EXIST UE_VERSION_MINIMUM(5,3)
+```
+Example of using it on the `UPROPERTY`:
+```c++
 #if 1 // SHOULD_MY_PROPERTY_EXIST
 UPROPERTY()
 bool MyProperty = true;
 #endif
 ```
-The above code is allowed! But for it to have a meaningful effect, you need to use a prebuild script to ensure it changes that `1` to a `0` and vice versa depending on your version of Unreal.
+If you need to use a custom prebuild header path you can modify `CustomPrebuildHeaders` in [`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py). The default is `Source/{PluginName}/Public/Prebuild.h`. You can see examples of its use in [Test.h](Source/VersionMacros/Public/Test.h) and [Prebuild.h](Source/VersionMacros/Public/Prebuild.h).
 
-Example `MacroReplacements` in `PrebuildConfig.py`:
-```python
-MacroReplacements = {
-    "SHOULD_MY_PROPERTY_EXIST": {
-        "Version": "5.5",
-        "Compare": '>='
-    },
-    # More of these "fake" macro configurations can be added
-}
-```
-The above configuration will do the following:
-- Automatically replace `#if 0 // SHOULD_MY_PROPERTY_EXIST` with `#if 1 // SHOULD_MY_PROPERTY_EXIST` inside header files anytime I start a build on Unreal 5.5 and later.
-- Automatically replace `#if 1 // SHOULD_MY_PROPERTY_EXIST` with `#if 0 // SHOULD_MY_PROPERTY_EXIST` inside header files anytime I start a build on Unreal 5.4 and earlier.
+### Example 2: Backporting a modern UFUNCTION
 
-### Example 2: Backporting a modern UCLASS
+Forward-compatibility on Blueprint Libraries is pretty neat. Here's an example of backporting the `IsA ( soft )` node to UE 5.4 and lower in a way that's forward-compatible.
 
-`UTickableWorldSubsystem` didn't get introduced until UE 4.27, so I created a backport of it for earlier versions of Unreal. The problem is `UObject` types need a `UCLASS()` macro, so I couldn't do the following:
+Example `Prebuild.h`:
 ```c++
-#define COMPAT_TICKABLE_WORLD_SUBSYSTEM UE_VERSION_MAXIMUM(4,26)
-#if COMPAT_TICKABLE_WORLD_SUBSYSTEM
+#pragma once
+#include "VersionMacros.h"
+
+#define BACKPORT_ISA_SOFT UE_VERSION_MAXIMUM(5,4)
+```
+
+Example `MyBackportedKismetSystemLibrary.h`:
+```c++
 UCLASS()
-class UTickableWorldSubsystem : public UDynamicSubsystem
+class UMyBackportedKismetSystemLibrary : public UBlueprintFunctionLibrary
 {
+	GENERATED_BODY()
+		
+#if 0 // BACKPORT_ISA_SOFT
+	/** Returns true if Object is of type SoftClass - either an instance of the class or child class, or implements the interface. Alternative to Cast - slower but without adding a hard reference. */
+	UFUNCTION(BlueprintCallable, Category = "Utilities", meta = (ExpandEnumAsExecs = ReturnValue, DisplayName = "IsA ( soft )"))
+	static bool IsObjectOfSoftClass(const UObject* Object, TSoftClassPtr<UObject> SoftClass);
+#endif
+};
+```
+
+Example `MyBackportedKismetSystemLibrary.cpp`:
+```c++
+#include "MyBackportedKismetSystemLibrary.h"
+#include "Prebuild.h"
+
+#if BACKPORT_ISA_SOFT
+bool UMyBackportedKismetSystemLibrary::IsObjectOfSoftClass(const UObject* Object, TSoftClassPtr<UObject> SoftClass)
+{
+	if (!Object)
+	{
+		return false;
+	}
+
+	TSubclassOf<UObject> ObjectClass = SoftClass.Get();
+	if (!ObjectClass)
+	{
+		return false;
+	}
+
+	TSubclassOf<UInterface> InterfaceClass = ObjectClass.Get();
+	if (InterfaceClass)
+	{
+		check(Object->GetClass());
+		return Object->GetClass()->ImplementsInterface(InterfaceClass);
+	}
+
+	return Object->IsA(ObjectClass);
+}
+#endif
+```
+
+If you import a Blueprint using that node from UE 5.4 to UE 5.5 it will actually replace it with the built-in UE 5.5 node!
+
+### Example 3: Backporting a modern UCLASS
+
+`UTickableWorldSubsystem` didn't get introduced until UE 4.27, so I created a backport of it for my plugin in earlier versions of Unreal. The problem is `UObject` types need a `UCLASS()` macro, so I couldn't do the following:
+```c++
+#if UE_VERSION_MAXIMUM(4,26)
+#include "Subsystems/Subsystem.h
+#else
+#include "Subsystems/WorldSubsystem.h
+#endif
+
+#include "MyBackportedTickableWorldSubsystem.generated.h"
+
+#if UE_VERSION_MAXIMUM(4,26) // THIS LINE WILL FAIL TO COMPILE
+UCLASS()
+class UMyBackportedTickableWorldSubsystem : public UDynamicSubsystem
+{
+    GENERATED_BODY()
     // backported declarations
+};
+#else
+class UMyBackportedTickableWorldSubsystem : public UTickableWorldSubsystem
+{
+    GENERATED_BODY()
+    // no declarations, it's all inherited from UTickableWorldSubsystem
 };
 #endif
 ```
 
-Prebuild scripts helped me work around this.
-
-Example `WorldSubsystemCompat.h` file:
+Prebuild scripts helped me work around this:
 ```c++
-#define COMPAT_TICKABLE_WORLD_SUBSYSTEM UE_VERSION_MAXIMUM(4,26)
-#if 0 // COMPAT_TICKABLE_WORLD_SUBSYSTEM
+#if UE_VERSION_MAXIMUM(4,26)
+#include "Subsystems/Subsystem.h
+#else
+#include "Subsystems/WorldSubsystem.h
+#endif
+
+#include "MyBackportedTickableWorldSubsystem.generated.h"
+
+#if 0 // UE_VERSION_MAXIMUM(4,26)
 UCLASS()
-class UTickableWorldSubsystem : public UDynamicSubsystem
+class UMyBackportedTickableWorldSubsystem : public UDynamicSubsystem
 {
+    GENERATED_BODY()
     // backported declarations
+};
+#else
+UCLASS()
+class UMyBackportedTickableWorldSubsystem : public UTickableWorldSubsystem
+{
+    GENERATED_BODY()
+    // no declarations, it's all inherited from UTickableWorldSubsystem
 };
 #endif
 ```
-Example `MacroReplacements` in `PrebuildConfig.py`:
-```python
-MacroReplacements = {
-    "COMPAT_TICKABLE_WORLD_SUBSYSTEM": {
-        "Version": "4.26",
-        "Compare": '<=',
-        "MatchFiles": [r'.*/WorldSubsystemCompat.h']
-    },
-    # More of these "fake" macro configurations can be added
-}
-```
-The above configuration will do the following:
-- Automatically replace `#if 0 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` with `#if 1 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` inside the `WorldSubsystemCompat.h` file anytime I start a build on Unreal 4.26 and lower.
-- Automatically replace `#if 1 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` with `#if 0 // COMPAT_TICKABLE_WORLD_SUBSYSTEM` inside the `WorldSubsystemCompat.h` file anytime I start a build on Unreal 4.27 and higher.
 
-Some other possible use-cases:
-- Adding version-specific `UFUNCTION`/`USTRUCT` declarations
-- Changing how a `UPROPERTY` is declared, such as whether to use `TObjectPtr<>` (introduced in UE 5.0) vs a raw pointer
+With the above code in place, I can use `UMyBackportedTickableWorldSubsystem` instead of `UTickableWorldSubsystem` throughout my plugin without needing to maintain a separate version of my plugin in UE 4.26 and lower.
 
 # Platform Support
 
 `VersionMacros.h` should work on all platforms.
 
-Prebuild script platforms tested so far:
-
-- [x] Win64
-- [x] Mac
-- [ ] Linux
+Prebuild scripts should work on all Windows or POSIX-compliant (Mac/Linux) systems that support Unreal Engine.
 
 Please file an issue if you run into a platform where this doesn't work.
 
@@ -247,7 +321,7 @@ I've tested this in UE versions 4.12 to 5.x, but it should work in lower version
 
 Support Notes:
 - UE 4.14 sometimes has problems with wrapping entire `UCLASS` declarations in `#if 0` / `#if 1` preprocessor blocks, but can usually be resolved with a clean rebuild.
-- UE 4.12 and 4.13 wouldn't compile any `UCLASS`/`USTRUCT` declarations for me, so I have those test cases disabled on those versions of Unreal until I find out why.
+- UE 4.12 and 4.13 wouldn't compile any `UCLASS`/`USTRUCT` declarations for me, so I have certain test cases disabled on those versions of Unreal until I find out why.
 - I'm unable to test UE 4.10 and 4.11 until I can find a Visual Studio 2015 installer that doesn't include Update 3, which breaks builds on those versions of UE.
 - I'm unable to test UE 4.9 and lower. I was unable to install Visual Studio 2013 on my system due to an unspecified conflict.
 - UE 4.8 and lower do not bundle a Python executable on Windows, so you'll need Python installed and in your environment `PATH` in order to run the prebuild scripts.

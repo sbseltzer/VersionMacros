@@ -214,12 +214,12 @@ compile_time_assert(!UE_5_4_OR_LATER);
 compile_time_assert(UE_5_4_OR_LATER);
 #endif
 
-#if 0 // UE_5_5_OR_LATER
+#if 1 // UE_5_5_OR_LATER
 compile_time_assert(UE_5_5_OR_LATER);
 #else
 compile_time_assert(!UE_5_5_OR_LATER);
 #endif
-#if 1 // !UE_5_5_OR_LATER
+#if 0 // !UE_5_5_OR_LATER
 compile_time_assert(!UE_5_5_OR_LATER);
 #else
 compile_time_assert(UE_5_5_OR_LATER);
@@ -340,19 +340,19 @@ compile_time_assert(!TEST_MACRO_CONST_BOOL);
 compile_time_assert(TEST_MACRO_CONST_BOOL);
 #endif
 
-#  if   1 // UE_VERSION_WITHIN( 4,26, 5, 4)
+#  if   0 // UE_VERSION_WITHIN( 4,26, 5, 4)
 compile_time_assert(UE_VERSION_WITHIN( 4,26, 5, 4));
 #  else
 compile_time_assert(!UE_VERSION_WITHIN( 4,26, 5, 4));
 #  endif
 
-#  if   1 // TEST_MACRO_C
+#  if   0 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
 #  else
 compile_time_assert(!TEST_MACRO_C);
 #  endif
 
-#  if   1 // TEST_MACRO_C
+#  if   0 // TEST_MACRO_C
 compile_time_assert(TEST_MACRO_C);
 #  elif   1 // !TEST_MACRO_B
 compile_time_assert(!TEST_MACRO_B);
@@ -431,7 +431,7 @@ public:
 #endif
 
 	// Test wrapping a UPROPERTY
-#if 0 // UE_VERSION_EQUAL(5,5)
+#if 1 // UE_VERSION_EQUAL(5,5)
 	UPROPERTY()
 	bool TestProperty;
 #endif

@@ -139,10 +139,15 @@ def handle_object_ptr_replacement(file_path, line):
                 new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
                 changed = True
         else:
-            raw_object_ptr_match = re.search(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
-            if raw_object_ptr_match:
-                new_line = re.sub(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<\1>', new_line)
+            raw_fwd_object_ptr_match = re.search(r'class(\s+)([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
+            if raw_fwd_object_ptr_match:
+                new_line = re.sub(r'class(\s+)([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<class\1\2>', new_line)
                 changed = True
+            if not changed:
+                raw_object_ptr_match = re.search(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
+                if raw_object_ptr_match:
+                    new_line = re.sub(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<\1>', new_line)
+                    changed = True
     return new_line, changed
 
 def handle_dynamic_fake_macro_replacement(file_path, line):

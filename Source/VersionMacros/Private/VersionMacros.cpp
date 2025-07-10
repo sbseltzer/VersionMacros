@@ -155,7 +155,10 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, <=, 4,21,2));
 static TObjectPtr<UObject> TestVariable1;
 static TObjectPtr<UObject> TestVariable2;
 static const TObjectPtr<UObject> TestVariable3 = nullptr; // UE 5.0 UAT requires const TObjectPtr to be initialized
-// Verify it works inside function declarations
+// Verify it works with forward declarations
+static TObjectPtr<class UObject> TestVariable4;
+static const TObjectPtr<class UObject> TestVariable5 = nullptr;
+// Verify it works inside function declarations and with reference operators
 static TObjectPtr<UObject> FuncTest(TObjectPtr<UObject>& Arg1, const TObjectPtr<UObject> Arg2) { return Arg1; }
 static const TObjectPtr<UObject> FuncTest2(TObjectPtr<UObject> Arg1, const TObjectPtr<UObject>& Arg2) { return Arg2; }
 // Verify it works inside delegate macros

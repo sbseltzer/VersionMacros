@@ -24,7 +24,7 @@
 #include "Test.h"
 #include "Modules/ModuleManager.h"
 
-#if UE_VERSION_COMPILE_TIME_TESTS
+#if VERSION_MACROS_COMPILE_TIME_TESTS
 
 //==============================================================================================
 // Test VersionMacros.h
@@ -32,6 +32,7 @@
 //==============================================================================================
 
 // EQ Comparisons
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,6,0, ==, 5,6,0));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,1, ==, 5,5,1));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, ==, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, ==, 5,3,2));
@@ -48,6 +49,7 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, ==, 4,21,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, ==, 4,20,3));
 
 // GTE Comparisons (Equal)
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,6,0, >=, 5,6,0));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,1, >=, 5,5,1));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, >=, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, >=, 5,3,2));
@@ -64,6 +66,7 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, >=, 4,21,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, >=, 4,20,3));
 
 // LTE Comparisons (Equal)
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,6,0, <=, 5,6,0));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,1, <=, 5,5,1));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, <=, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, <=, 5,3,2));
@@ -80,6 +83,7 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, <=, 4,21,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, <=, 4,20,3));
 
 // GT Comparisons
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,6,0, >, 5,5,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,1, >, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, >, 5,3,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, >, 5,2,1));
@@ -95,6 +99,7 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,22,3, >, 4,21,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, >, 4,20,3));
 
 // GTE Comparisons (Greater)
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,6,0, >=, 5,5,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,1, >=, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, >=, 5,3,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, >=, 5,2,1));
@@ -110,6 +115,7 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,22,3, >=, 4,21,2));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, >=, 4,20,3));
 
 // LT Comparisons
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,4, <, 5,6,0));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, <, 5,5,1));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, <, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,2,1, <, 5,3,2));
@@ -125,6 +131,7 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, <, 4,22,3));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, <, 4,21,2));
 
 // LTE Comparisons (Lesser)
+compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,5,4, <=, 5,6,0));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,4,4, <=, 5,5,1));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,3,2, <=, 5,4,4));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(5,2,1, <=, 5,3,2));

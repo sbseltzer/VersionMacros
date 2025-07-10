@@ -26,11 +26,11 @@
 #include "Prebuild.h"
 
 // Compile-time sanity tests
-#ifndef UE_VERSION_COMPILE_TIME_TESTS
-#define UE_VERSION_COMPILE_TIME_TESTS 1
+#ifndef VERSION_MACROS_COMPILE_TIME_TESTS
+#define VERSION_MACROS_COMPILE_TIME_TESTS 1
 #endif
 
-#if UE_VERSION_COMPILE_TIME_TESTS
+#if VERSION_MACROS_COMPILE_TIME_TESTS
 #define compile_time_assert(b) static_assert((b), "Compile time assertion failed: "#b)
 
 //==============================================================================================
@@ -225,6 +225,17 @@ compile_time_assert(!UE_5_5_OR_LATER);
 compile_time_assert(UE_5_5_OR_LATER);
 #endif
 
+#if 1 // UE_5_6_OR_LATER
+compile_time_assert(UE_5_6_OR_LATER);
+#else
+compile_time_assert(!UE_5_6_OR_LATER);
+#endif
+#if 0 // !UE_5_6_OR_LATER
+compile_time_assert(!UE_5_6_OR_LATER);
+#else
+compile_time_assert(UE_5_6_OR_LATER);
+#endif
+
 #define TEST_MACRO UE_5_0_OR_EARLIER
 #if 0 // TEST_MACRO
 compile_time_assert(TEST_MACRO);
@@ -380,7 +391,7 @@ compile_time_assert(!TEST_MACRO_E);
 //================================================================================================================
 #if 1 // UE_VERSION_ABOVE(4, 13)
 
-#if UE_VERSION_MAXIMUM(4, 15)
+#if (((5)*1000000ull+(6)*1000ull+(0)*1ull) <= ((4)*1000000ull+(15)*1000ull+(0)*1ull))
 #include "Core.h"
 #include "UObject/ObjectMacros.h"
 #include "UObject/UObjectGlobals.h"

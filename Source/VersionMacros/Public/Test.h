@@ -442,7 +442,7 @@ public:
 #endif
 
 	// Test wrapping a UPROPERTY
-#if 1 // UE_VERSION_EQUAL(5,5)
+#if 1 // UE_VERSION_EQUAL(5,6)
 	UPROPERTY()
 	bool TestProperty;
 #endif

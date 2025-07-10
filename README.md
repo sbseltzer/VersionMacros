@@ -330,6 +330,6 @@ Please file an issue if you run into a version of Unreal where this doesn't work
 
 # Closing Remarks
 
-If this was helpful for one of your projects, consider leaving a thank-you note in the issues. :)
+If this was helpful for one of your projects, consider leaving a thank-you note in [Discussions](https://github.com/sbseltzer/VersionMacros/discussions). :)
 
 My website: [sbseltzer.net](https://sbseltzer.net/)

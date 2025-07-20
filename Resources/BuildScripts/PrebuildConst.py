@@ -5,14 +5,22 @@ EQUAL = 3
 MINIMUM = 4
 MAXIMUM = 5
 WITHIN = 6
+# Version Macro Prefix
+MacroPrefixName = ""
+# Version Macro Common
+MacroCommonName = "UE_VERSION_"
+# Operator IDs to suffix names
+MacroSuffixNames = [
+    None,
+    'ABOVE',
+    'BELOW',
+    'EQUAL',
+    'MINIMUM',
+    'MAXIMUM',
+    'WITHIN'
+]
 # Operator Names/Symbols to ID
 OperatorStringToID = {
-    'ABOVE': ABOVE,
-    'BELOW': BELOW,
-    'EQUAL': EQUAL,
-    'MINIMUM': MINIMUM,
-    'MAXIMUM': MAXIMUM,
-    'WITHIN': WITHIN,
     '>': ABOVE,
     '<': BELOW,
     '==': EQUAL,

@@ -1,4 +1,6 @@
-# Modify this file to suit your project needs
+# Modify PrebuildConfig.py to suit your project needs
+
+# Import constants
 from PrebuildConst import *
 
 # List of directories to recursively perform text replacements in
@@ -16,6 +18,22 @@ ProcessDirs = [
 CustomPrebuildHeaders = [
     "Source/{PluginName}/Public/Prebuild.h"
 ]
+
+# If you've modified the UE_VERSION_* macros to have a custom prefix, set it here
+# This may be a good idea if you expect gameplay code to include header files from your plugin that use these macros
+# MacroPrefixName = ""
+
+# If you've modified the common part of the version macro names to something other than "UE_VERSION_", set it here
+# You might wish to do this if you have a particular naming convention you want to follow, or to make them more concise
+# MacroCommonName = "UE_VERSION_"
+
+# If you've modified any of the UE_VERSION_* macros to have a different suffix name, set them here
+# MacroSuffixNames[ABOVE] = "ABOVE"
+# MacroSuffixNames[BELOW] = "BELOW"
+# MacroSuffixNames[EQUAL] = "EQUAL"
+# MacroSuffixNames[MINIMUM] = "MINIMUM"
+# MacroSuffixNames[MAXIMUM] = "MAXIMUM"
+# MacroSuffixNames[WITHIN] = "WITHIN"
 
 # Whether to interpret macro replacements of the form `#if <0 or 1> // UE_VERSION_*(major,minor)`
 AllowDynamicVersionMacroReplacements = True

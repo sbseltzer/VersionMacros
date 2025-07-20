@@ -446,6 +446,14 @@ public:
 	UPROPERTY()
 	bool TestProperty;
 #endif
+
+	// Test UPROPERTY-based TObjectPtr portability
+	UPROPERTY(BlueprintReadOnly, Category = "Test")
+	TObjectPtr<UObject>  MyTestObject;
+
+	// Test UPROPERTY-based TObjectPtr portability (forward-declared)
+	UPROPERTY(BlueprintReadOnly, Category = "Test")
+	TObjectPtr<class  UObject>  MyTestObject2;
 };
 #endif
 

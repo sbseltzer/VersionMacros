@@ -158,7 +158,7 @@ def parse_prebuild_header(path):
     except Exception as e:
         print_error_and_exit("Failed to open prebuild header file - Check CustomPrebuildHeaders in PrebuildConfig.py and make you've entered a valid file path relative to this plugin.", path, None, e)
 
-def handle_object_ptr_replacement(line, file_path, line_num):
+def handle_object_ptr_replacement(line, file_path, line_num, was_prev_line_uproperty):
     new_line = line
     changed = False
     should_replace = False
@@ -169,15 +169,34 @@ def handle_object_ptr_replacement(line, file_path, line_num):
                 break
         if should_replace:
             if do_comparison("5.0", BELOW):
+                # TObjectPtr backward-portability
                 object_ptr_match = re.search(r'TObjectPtr<([\s\w_:]+)>', new_line)
                 if object_ptr_match:
-                    new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
-                    changed = True
+                    if was_prev_line_uproperty:
+                        # NOTE: The TObjectPtr rules for UPROPERTY are unambiguous, so we don't add an inline annotation for these conversions
+                        new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1*', new_line)
+                        changed = True
+                    else:
+                        new_line = re.sub(r'TObjectPtr<([\s\w_:]+)>', r'\1* /* TObjectPtr */', new_line)
+                        changed = True
             else:
-                raw_fwd_object_ptr_match = re.search(r'class(\s+)([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
-                if raw_fwd_object_ptr_match:
-                    new_line = re.sub(r'class(\s+)([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<class\1\2>', new_line)
-                    changed = True
+                # TObjectPtr forward-portability
+                if was_prev_line_uproperty:
+                    # NOTE: The TObjectPtr rules for UPROPERTY are unambiguous, so we don't require an inline annotation for these conversions
+                    raw_fwd_object_ptr_match = re.search(r'class(\s+)(U[\w_:]+)\s*\*\s*', new_line)
+                    if raw_fwd_object_ptr_match:
+                        new_line = re.sub(r'class(\s+)(U[\w_:]+)\s*\*(\s*)', r'TObjectPtr<class\1\2>\3', new_line)
+                        changed = True
+                    if not changed:
+                        raw_object_ptr_match = re.search(r'(U[\w_:]+)\s*\*\s*', new_line)
+                        if raw_object_ptr_match:
+                            new_line = re.sub(r'(U[\w_:]+)\s*\*(\s*)', r'TObjectPtr<\1>\2', new_line)
+                            changed = True
+                if not changed:
+                    raw_fwd_object_ptr_match = re.search(r'class(\s+)([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
+                    if raw_fwd_object_ptr_match:
+                        new_line = re.sub(r'class(\s+)([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', r'TObjectPtr<class\1\2>', new_line)
+                        changed = True
                 if not changed:
                     raw_object_ptr_match = re.search(r'([\w_:]+)\s*\*\s*/\*\s*TObjectPtr\s*\*/', new_line)
                     if raw_object_ptr_match:
@@ -305,14 +324,14 @@ def handle_fake_macro_replacement(line, file_path, line_num):
             print("Warning: Failed to find Macro Replacement Info for " + macro_text + " " + file_path + ":" + str(line_num))
     return new_line, changed
 
-def replace_line_in_file(file_path, line_num, line):
+def replace_line_in_file(file_path, line_num, line, was_prev_line_uproperty):
     changed = False
     new_line = line
     is_dynamic_macro_replacement = False
     try:
         # TObjectPtr replacement
         if PrebuildConfig.AllowObjectPtrReplacements:
-            [new_line, obj_ptr_changed] = handle_object_ptr_replacement(new_line, file_path, line_num)
+            [new_line, obj_ptr_changed] = handle_object_ptr_replacement(new_line, file_path, line_num, was_prev_line_uproperty)
             changed = changed or obj_ptr_changed
         # Fake macro replacement (UE_VERSION_* form)
         if PrebuildConfig.AllowDynamicVersionMacroReplacements:
@@ -333,9 +352,11 @@ def replace_in_file(file_path):
     output_file = io.open(file_path + ".new", 'w', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     any_replaced = False
     line_num = 0
+    was_prev_line_uproperty = False
     for line in input_file:
         line_num += 1
-        new_line, changed = replace_line_in_file(file_path, line_num, line)
+        new_line, changed = replace_line_in_file(file_path, line_num, line, was_prev_line_uproperty)
+        was_prev_line_uproperty = re.match(r'\s*UPROPERTY\s*\(.*', new_line) != None
         any_replaced = any_replaced or changed
         output_file.write(new_line)
     input_file.close()

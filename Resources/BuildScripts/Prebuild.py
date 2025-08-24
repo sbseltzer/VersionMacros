@@ -143,7 +143,7 @@ def check_encodings():
                     missing_codecs.append(enc)
                 else:
                     ValidCodecs.append(codec_info.name)
-                    print("Encoding '" + enc + "' found as '" + codec_info.name + "' in PrebuildConfig.SourceFileCodecs")
+                    #print("Encoding '" + enc + "' found as '" + codec_info.name + "' in PrebuildConfig.SourceFileCodecs")
             except Exception as e:
                 missing_codecs.append(enc)
                 pass
@@ -162,7 +162,7 @@ def try_detect_encoding(file_path):
         except Exception as e:
             print("WARNING: Couldn't use encoding=" + str(enc) + " for " + file_path)
             pass
-    print("Using encoding=" + str(result) + " for " + file_path)
+    #print("Using encoding=" + str(result) + " for " + file_path)
     return result
 
 def parse_prebuild_header_line(line, file_path, line_num):

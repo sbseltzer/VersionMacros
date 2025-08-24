@@ -71,10 +71,17 @@ MacroReplacements = {
 }
 DefaultMacroReplacementFiles = MatchHeaderFiles
 
-# Passed to io.open() as the encoding option
-# Modify this value to match the encoding your project uses if you run into Python errors that mention decoding
+# Array of codec names to try using as the encoding option for io.open() when reading/writing source files
+# Unreal Engine generally uses UTF-8 by default, and Python is often able to gracefully handle this without assistance
+# If you run into Python errors that mention file decoding, you may need to specify those codecs here
 # See: https://docs.python.org/2.7/library/io.html?highlight=encoding#io.open
-SourceFileEncoding = None # 'utf-8', 'utf-16', 'iso-8859-1', etc.
+# See: https://dev.epicgames.com/documentation/en-us/unreal-engine/character-encoding-in-unreal-engine
+SourceFileCodecs = [
+    'utf-8', # UTF-8 (with or without BOM) - generally C++ source files use this. If a BOM is found, it is preserved.
+    'utf-16', # UTF-16 (either endian) - also acceptable for C++ source files, but not the preferred encoding.
+    'iso-8859-1', # Latin-1 (256 codepoints) - subset of UTF-8, often safe for C++ source files, but not recommended.
+    'ascii' # ASCII (128 codepoints) - subset of Latin-1, often safe for C++ source files, but not recommended.
+]
 
 # Passed to io.open() as the errors option
 # It's usually safe to set this to 'ignore' but you should use version control to see whether anything important changed

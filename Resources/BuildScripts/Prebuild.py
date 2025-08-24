@@ -33,6 +33,7 @@ import os
 import json
 import re
 import io
+import encodings
 import traceback
 
 from PrebuildConst import *
@@ -106,7 +107,7 @@ def do_comparison(version, compare):
         version += ".0"
     # Split version into major/minor integers so we can do a polynomial comparison
     # This works around an edge case in UE4 where the minor version exceeded 9
-    # For example UE 4.9 is a lower version than UE 4.27, but a numeric comparison would evaluate to the opposite!
+    # For example: UE 4.9 is a lower version than UE 4.27, but a numeric comparison would evaluate to the opposite!
     [major, minor] = re.split(r'\.', version, 1)
     version_as_int = version_to_int(major, minor)
     compare_id = (type(compare) == int) and compare or OperatorStringToID.get(compare)
@@ -125,6 +126,44 @@ def do_comparison(version, compare):
         return EngineVersionAsInt >= version_as_int
     print_error_and_exit("Unhandled comparison operator: " + compare)
     return False
+
+# We start the list with UTF-8 as we'll always want to try that first
+ValidCodecs = []
+
+# Finds valid user-specified codecs and stores them in ValidCodecs global variable.
+def check_encodings():
+    if PrebuildConfig.SourceFileCodecs != None and len(PrebuildConfig.SourceFileCodecs) > 0:
+        missing_codecs = []
+        for enc in (PrebuildConfig.SourceFileCodecs):
+            if enc == None:
+                continue
+            try:
+                codec_info = encodings.search_function(enc)
+                if codec_info is None:
+                    missing_codecs.append(enc)
+                else:
+                    ValidCodecs.append(codec_info.name)
+                    print("Encoding '" + enc + "' found as '" + codec_info.name + "' in PrebuildConfig.SourceFileCodecs")
+            except Exception as e:
+                missing_codecs.append(enc)
+                pass
+        for enc in missing_codecs:
+            print("WARNING: Encoding '" + enc + "' specified in PrebuildConfig.SourceFileCodecs does not exist!")
+
+def try_detect_encoding(file_path):
+    result = None
+    for enc in ValidCodecs:
+        try:
+            with io.open(file_path, 'r', encoding=enc, errors=PrebuildConfig.EncodingErrorHandling) as input_file:
+                for line in input_file:
+                    break
+                result = enc
+                break
+        except Exception as e:
+            print("WARNING: Couldn't use encoding=" + str(enc) + " for " + file_path)
+            pass
+    print("Using encoding=" + str(result) + " for " + file_path)
+    return result
 
 def parse_prebuild_header_line(line, file_path, line_num):
     match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*' + MacroPrefixName + MacroCommonName + r'(\w+)\s*\(([\s\d,]+))', line)
@@ -165,7 +204,8 @@ def parse_prebuild_header_line(line, file_path, line_num):
 
 def parse_prebuild_header(path):
     try:
-        header_file = io.open(path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
+        use_encoding = try_detect_encoding(path)
+        header_file = io.open(path, 'r', encoding=use_encoding, errors=PrebuildConfig.EncodingErrorHandling)
         line_num = 1
         for line in header_file:
             try:
@@ -362,8 +402,9 @@ def replace_line_in_file(file_path, line_num, line, was_prev_line_uproperty):
 def replace_in_file(file_path):
     if not is_file_eligible_for_replacements(file_path):
         return
-    input_file = io.open(file_path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
-    output_file = io.open(file_path + ".new", 'w', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
+    use_encoding = try_detect_encoding(file_path)
+    input_file = io.open(file_path, 'r', encoding=use_encoding, errors=PrebuildConfig.EncodingErrorHandling)
+    output_file = io.open(file_path + ".new", 'w', encoding=use_encoding, errors=PrebuildConfig.EncodingErrorHandling)
     any_replaced = False
     line_num = 0
     was_prev_line_uproperty = False
@@ -393,6 +434,10 @@ def do_replacements_in_directory_recursive(directory):
         elif os.path.isfile(path):
             replace_in_file(path)
 
+# First make sure encodings list only has valid entries
+check_encodings()
+
+# Parse prebuild header files
 PluginName = os.path.basename(PluginDir)
 for path in PrebuildConfig.CustomPrebuildHeaders:
     path = path.replace("{PluginName}", PluginName)

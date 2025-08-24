@@ -58,6 +58,13 @@ EngineDir = os.environ['EngineDir']
 MajorVersion = os.environ['UEMajorVersion']
 MinorVersion = os.environ['UEMinorVersion']
 
+def is_file_eligible_for_replacements(file_path, pattern_list = None):
+    pattern_list = pattern_list or PrebuildConfig.MatchAllSourceFiles
+    for pattern in pattern_list:
+        if (re.match(pattern, file_path)):
+            return True
+    return False
+
 def print_error_and_exit(message, source_file=None, line_num=None, exception=None):
     print_str = ""
     if (source_file != None):
@@ -174,12 +181,8 @@ def parse_prebuild_header(path):
 def handle_object_ptr_replacement(line, file_path, line_num, was_prev_line_uproperty):
     new_line = line
     changed = False
-    should_replace = False
     try:
-        for pattern in PrebuildConfig.MatchAllSourceFiles:
-            if (re.match(pattern, file_path)):
-                should_replace = True
-                break
+        should_replace = is_file_eligible_for_replacements(file_path, PrebuildConfig.MatchAllSourceFiles)
         if should_replace:
             if do_comparison("5.0", BELOW):
                 # TObjectPtr backward-portability
@@ -223,12 +226,8 @@ def handle_dynamic_fake_macro_replacement(line, file_path, line_num):
     new_line = line
     changed = False
     is_dynamic_macro_replacement = False
-    should_replace = False
     # Only header files benefit from this kind of fake macro replacement
-    for pattern in PrebuildConfig.DefaultMacroReplacementFiles:
-        if (re.match(pattern, file_path)):
-            should_replace = True
-            break
+    should_replace = is_file_eligible_for_replacements(file_path, PrebuildConfig.DefaultMacroReplacementFiles)
     if should_replace:
         match = re.search(r'^\s*#\s*(el)?if\s+(\d)\s*//\s*(!?)' + MacroPrefixName + MacroCommonName + r'(\w+)\s*\(([\s\d,]+)\)', new_line)
         if match:
@@ -361,6 +360,8 @@ def replace_line_in_file(file_path, line_num, line, was_prev_line_uproperty):
     return new_line, changed
 
 def replace_in_file(file_path):
+    if not is_file_eligible_for_replacements(file_path):
+        return
     input_file = io.open(file_path, 'r', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     output_file = io.open(file_path + ".new", 'w', encoding=PrebuildConfig.SourceFileEncoding, errors=PrebuildConfig.EncodingErrorHandling)
     any_replaced = False
@@ -397,6 +398,7 @@ for path in PrebuildConfig.CustomPrebuildHeaders:
     path = path.replace("{PluginName}", PluginName)
     parse_prebuild_header(path)
 
+# Process replacements in source files
 for dir in PrebuildConfig.ProcessDirs:
     dir = dir.replace("{PluginName}", PluginName)
     do_replacements_in_directory_recursive(os.path.join(PluginDir, dir))

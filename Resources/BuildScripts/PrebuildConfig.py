@@ -42,8 +42,8 @@ AllowDynamicVersionMacroReplacements = True
 AllowObjectPtrReplacements = True
 
 # Default file patterns to perform replacements in
-MatchHeaderFiles = [r'.*\.h', r'.*\.hpp']
-MatchImplementationFiles = [r'.*\.cpp', r'.*\.inl', r'.*\.c']
+MatchHeaderFiles = [r'.*\.h$', r'.*\.hpp$']
+MatchImplementationFiles = [r'.*\.cpp$', r'.*\.inl$', r'.*\.c$']
 MatchAllSourceFiles = MatchHeaderFiles + MatchImplementationFiles
 
 # Custom "fake" macro replacements

@@ -464,5 +464,8 @@ public:
 	class  UObject  *  MyTestObject4;
 };
 #endif
-
+// Testing unicode: ¯\_(ツ)_/¯
+// Testing unicode: (┬┬﹏┬┬)
+// Testing unicode: (❁´◡`❁)
+// Testing unicode: ™ ® © ℠ 
 #endif

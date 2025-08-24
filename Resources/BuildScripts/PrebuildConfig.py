@@ -79,8 +79,8 @@ DefaultMacroReplacementFiles = MatchHeaderFiles
 SourceFileCodecs = [
     'utf-8', # UTF-8 (with or without BOM) - generally C++ source files use this. If a BOM is found, it is preserved.
     'utf-16', # UTF-16 (either endian) - also acceptable for C++ source files, but not the preferred encoding.
-    'iso-8859-1', # Latin-1 (256 codepoints) - subset of UTF-8, often safe for C++ source files, but not recommended.
-    'ascii' # ASCII (128 codepoints) - subset of Latin-1, often safe for C++ source files, but not recommended.
+    'iso-8859-1', # Latin-1 (256 codepoints) - default for some OS plaintext files. Often safe, but not recommended.
+    'ascii' # ASCII (128 codepoints) - subset of Latin-1 and UTF-8, often safe, but not recommended.
 ]
 
 # Passed to io.open() as the errors option

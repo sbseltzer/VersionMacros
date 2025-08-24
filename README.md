@@ -63,7 +63,7 @@ The benefit of using `PreBuildSteps` is your plugin can safely be copy/pasted fr
 
 ### Technical Notes for PrebuildConfig.py
 
-- `SourceFileEncoding` is passed to `io.open` as the `encoding` option when reading/writing source files.
+- `SourceFileCodecs` is an array of text codecs to try passing to `io.open` as the `encoding` option when reading/writing source files.
 - `EncodingErrorHandling` is passed to `io.open` as the `errors` option when reading/writing source files.
 - `ProcessDirs` is a list of directories to recursively perform replacements in. The more specific you are here, the faster the prebuild script will complete. By default, it does replacements in every file under the plugin `Source` directory. It's not a bad idea to replace that with more specific directories with files you care about.
 - `MatchHeaderFiles` is a regex pattern list for header files (`.h`). These are used to determine which files to perform "fake" macro replacements in by default.

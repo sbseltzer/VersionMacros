@@ -236,6 +236,17 @@ compile_time_assert(!UE_5_6_OR_LATER);
 compile_time_assert(UE_5_6_OR_LATER);
 #endif
 
+#if 1 // UE_5_7_OR_LATER
+compile_time_assert(UE_5_7_OR_LATER);
+#else
+compile_time_assert(!UE_5_7_OR_LATER);
+#endif
+#if 0 // !UE_5_7_OR_LATER
+compile_time_assert(!UE_5_7_OR_LATER);
+#else
+compile_time_assert(UE_5_7_OR_LATER);
+#endif
+
 #define TEST_MACRO UE_5_0_OR_EARLIER
 #if 0 // TEST_MACRO
 compile_time_assert(TEST_MACRO);

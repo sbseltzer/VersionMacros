@@ -1,8 +1,8 @@
 /**
-* Version Macros for supporting projects that span multiple versions of Unreal.
+ * Version Macros for supporting projects that span multiple versions of Unreal.
  * https://github.com/sbseltzer/VersionMacros
  * 
- * Copyright Sam Seltzer-Johnston 2025. All Rights Reserved.
+ * Copyright Sam Seltzer-Johnston 2026. All Rights Reserved.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -453,7 +453,7 @@ public:
 #endif
 
 	// Test wrapping a UPROPERTY
-#if 1 // UE_VERSION_EQUAL(5,6)
+#if 0 // UE_VERSION_EQUAL(5,6)
 	UPROPERTY()
 	bool TestProperty;
 #endif
@@ -468,11 +468,11 @@ public:
 	
 	// Test UPROPERTY-based TObjectPtr portability
 	UPROPERTY(BlueprintReadOnly, Category = "Test")
-	UObject  *  MyTestObject3;
+	TObjectPtr<UObject>  MyTestObject3;
 
 	// Test UPROPERTY-based TObjectPtr portability (forward-declared)
 	UPROPERTY(BlueprintReadOnly, Category = "Test")
-	class  UObject  *  MyTestObject4;
+	TObjectPtr<class  UObject>  MyTestObject4;
 };
 #endif
 // Testing unicode: ¯\_(ツ)_/¯

@@ -58,6 +58,7 @@ PluginDir = os.environ['PluginDir'] or os.path.curdir
 EngineDir = os.environ['EngineDir']
 MajorVersion = os.environ['UEMajorVersion']
 MinorVersion = os.environ['UEMinorVersion']
+PatchVersion = os.environ['UEPatchVersion']
 
 def is_file_eligible_for_replacements(file_path, pattern_list = None):
     pattern_list = pattern_list or PrebuildConfig.MatchAllSourceFiles
@@ -91,13 +92,14 @@ if MajorVersion == None or MinorVersion == None:
         BuildVersion = json.load(f)
         MajorVersion = str(BuildVersion['MajorVersion'])
         MinorVersion = str(BuildVersion['MinorVersion'])
+        PatchVersion = str(BuildVersion['PatchVersion'])
 
-EngineVersion = MajorVersion + "." + MinorVersion
+EngineVersion = MajorVersion + "." + MinorVersion + "." + PatchVersion
 
-def version_to_int(major, minor, patch=0):
-    return int(major)*1000000+int(minor)*1000+int(patch)
+def version_to_int(major, minor, patch=None):
+    return int(major)*1000000+int(minor)*1000+int(patch or 0)
 
-EngineVersionAsInt = version_to_int(MajorVersion, MinorVersion)
+EngineVersionAsInt = version_to_int(MajorVersion, MinorVersion, PatchVersion)
 
 def do_comparison(version, compare):
     # If version is a non-string (i.e. float or decimal) convert to string so we can separate the major/minor versions
@@ -108,8 +110,11 @@ def do_comparison(version, compare):
     # Split version into major/minor integers so we can do a polynomial comparison
     # This works around an edge case in UE4 where the minor version exceeded 9
     # For example: UE 4.9 is a lower version than UE 4.27, but a numeric comparison would evaluate to the opposite!
-    [major, minor] = re.split(r'\.', version, 1)
-    version_as_int = version_to_int(major, minor)
+    parts = re.split(r'\.', version, 2)
+    major = parts[0]
+    minor = parts[1]
+    patch = len(parts) == 3 and parts[2] or None
+    version_as_int = version_to_int(major, minor, patch)
     compare_id = (type(compare) == int) and compare or OperatorStringToID.get(compare)
     if compare_id == None:
         print_error_and_exit("Invalid comparison operator '" + compare + "'!")
@@ -166,7 +171,7 @@ def try_detect_encoding(file_path):
     return result
 
 def parse_prebuild_header_line(line, file_path, line_num):
-    match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*' + MacroPrefixName + MacroCommonName + r'(\w+)\s*\(([\s\d,]+))', line)
+    match = re.search(r'#define\s+([\w_\d]+)\s+((!?)\s*' + MacroPrefixName + MacroCommonName + r'(\w+)\s*\(([\s\d,\-]+))', line)
     if match:
         macro_name = match.group(1)
         is_negated = match.group(3) == '!'
@@ -178,6 +183,10 @@ def parse_prebuild_header_line(line, file_path, line_num):
         if num_args == 2:
             [major, minor] = args
             version = str(int(major)) + "." + str(int(minor))
+            version_matches = (do_comparison(version, comparison_name) != is_negated)
+        elif num_args == 3:
+            [major, minor, patch] = args
+            version = str(int(major)) + "." + str(int(minor)) + "." + str(int(patch))
             version_matches = (do_comparison(version, comparison_name) != is_negated)
         elif num_args == 4 and (OperatorStringToID.get(comparison_name) == WITHIN):
             [min_major, min_minor, max_major, max_minor] = args
@@ -269,7 +278,7 @@ def handle_dynamic_fake_macro_replacement(line, file_path, line_num):
     # Only header files benefit from this kind of fake macro replacement
     should_replace = is_file_eligible_for_replacements(file_path, PrebuildConfig.DefaultMacroReplacementFiles)
     if should_replace:
-        match = re.search(r'^\s*#\s*(el)?if\s+(\d)\s*//\s*(!?)' + MacroPrefixName + MacroCommonName + r'(\w+)\s*\(([\s\d,]+)\)', new_line)
+        match = re.search(r'^\s*#\s*(el)?if\s+(\d)\s*//\s*(!?)' + MacroPrefixName + MacroCommonName + r'(\w+)\s*\(([\s\d,\-]+)\)', new_line)
         if match:
             elif_prefix = match.group(1)
             is_dynamic_macro_replacement = True
@@ -283,6 +292,10 @@ def handle_dynamic_fake_macro_replacement(line, file_path, line_num):
             if num_args == 2:
                 [major, minor] = args
                 version = str(int(major)) + "." + str(int(minor))
+                version_matches = (do_comparison(version, comparison_name) != is_negated)
+            elif num_args == 3:
+                [major, minor, patch] = args
+                version = str(int(major)) + "." + str(int(minor)) + "." + str(max(int(patch), 0))
                 version_matches = (do_comparison(version, comparison_name) != is_negated)
             elif num_args == 4 and (OperatorStringToID.get(comparison_name) == WITHIN):
                 [min_major, min_minor, max_major, max_minor] = args

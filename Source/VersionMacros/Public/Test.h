@@ -395,6 +395,39 @@ compile_time_assert(TEST_MACRO_E);
 compile_time_assert(!TEST_MACRO_E);
 #endif
 
+#if 0 // UE_VERSION_OLDER_THAN(5,7,-1)
+compile_time_assert(UE_VERSION_OLDER_THAN(5,7,-1));
+#else
+compile_time_assert(!UE_VERSION_OLDER_THAN(5,7,-1));
+#endif
+#if 0 // !UE_VERSION_NEWER_THAN(5,0,-1)
+compile_time_assert(!UE_VERSION_NEWER_THAN(5,0,-1));
+#else
+compile_time_assert(UE_VERSION_NEWER_THAN(5,0,-1));
+#endif
+#if 0 // !UE_VERSION_NEWER_THAN_OR_EQUAL(5,0,-1)
+compile_time_assert(!UE_VERSION_NEWER_THAN_OR_EQUAL(5,0,-1));
+#else
+compile_time_assert(UE_VERSION_NEWER_THAN_OR_EQUAL(5,0,-1));
+#endif
+
+#if 0 // TEST_MACRO_F
+compile_time_assert(TEST_MACRO_F);
+#else
+compile_time_assert(!TEST_MACRO_F);
+#endif
+
+#if 1 // TEST_MACRO_G
+compile_time_assert(TEST_MACRO_G);
+#else
+compile_time_assert(!TEST_MACRO_G);
+#endif
+
+#if 1 // TEST_MACRO_H
+compile_time_assert(TEST_MACRO_H);
+#else
+compile_time_assert(!TEST_MACRO_H);
+#endif
 #endif
 
 //================================================================================================================

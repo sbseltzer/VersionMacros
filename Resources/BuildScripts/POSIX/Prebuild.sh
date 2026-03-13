@@ -22,6 +22,7 @@
 BuildVersionFile="$EngineDir/Build/Build.version"
 MajorVersion=$(< "$BuildVersionFile" grep -o '"MajorVersion".*,' | grep -o '\d*')
 MinorVersion=$(< "$BuildVersionFile" grep -o '"MinorVersion".*,' | grep -o '\d*')
+PatchVersion=$(< "$BuildVersionFile" grep -o '"PatchVersion".*,' | grep -o '\d*')
 # Find the local Python installation, with a preference for Python3
 PythonExe=$(command -v python3)
 if [ ! -f "$PythonExe" ]; then
@@ -33,4 +34,5 @@ if [ ! -f "$PythonExe" ]; then
 fi
 export UEMajorVersion=$MajorVersion
 export UEMinorVersion=$MinorVersion
+export UEPatchVersion=$PatchVersion
 "$PythonExe" "$PluginDir/Resources/BuildScripts/Prebuild.py"

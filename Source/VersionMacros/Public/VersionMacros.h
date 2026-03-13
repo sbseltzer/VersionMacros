@@ -39,7 +39,7 @@
 #endif
 
 // Express version as a simple polynomial for easy comparisons.
-#define UE_VERSION_TO_INT(major, minor, patch) ((major)*1000000+(minor)*1000+(patch))
+#define UE_VERSION_TO_INT(major, minor, patch) ((major)*1000000+(minor)*1000+(patch < 0 ? 0 : patch))
 // Explicit comparison between two version tuples.
 #define UE_VERSION_COMPARE_EXPLICIT(major1, minor1, patch1, op, major2, minor2, patch2) (UE_VERSION_TO_INT(major1, minor1, patch1) op UE_VERSION_TO_INT(major2, minor2, patch2))
 // Comparisons against current version with a specified operator.
@@ -55,3 +55,20 @@
 #define UE_VERSION_MINIMUM(major, minor) UE_VERSION_COMPARE_CURRENT(>=, major, minor)
 #define UE_VERSION_MAXIMUM(major, minor) UE_VERSION_COMPARE_CURRENT(<=, major, minor)
 #define UE_VERSION_WITHIN(major_min, minor_min, major_max, minor_max) (UE_VERSION_MINIMUM(major_min, minor_min) && UE_VERSION_MAXIMUM(major_max, minor_max))
+
+// Backwards-compatibility for the built-in version macros header that was added in UE 4.19
+#if UE_VERSION_MINIMUM(4,19)
+#include "Misc/EngineVersionComparison.h"
+#endif
+#ifndef UE_VERSION_OLDER_THAN
+// UE_VERSION_OLDER_THAN was added in UE 4.19
+#define UE_VERSION_OLDER_THAN(MajorVersion, MinorVersion, PatchVersion) UE_VERSION_COMPARE_CURRENT_WITH_PATCH(<, MajorVersion, MinorVersion, PatchVersion)
+#endif
+#ifndef UE_VERSION_NEWER_THAN
+// UE_VERSION_OLDER_THAN was added in UE 4.19
+#define UE_VERSION_NEWER_THAN(MajorVersion, MinorVersion, PatchVersion) UE_VERSION_COMPARE_CURRENT_WITH_PATCH(>, MajorVersion, MinorVersion, PatchVersion)
+#endif
+#ifndef UE_VERSION_NEWER_THAN_OR_EQUAL
+// UE_VERSION_NEWER_THAN_OR_EQUAL was added in UE 5.6
+#define UE_VERSION_NEWER_THAN_OR_EQUAL(MajorVersion, MinorVersion, PatchVersion) UE_VERSION_COMPARE_CURRENT_WITH_PATCH(>=, MajorVersion, MinorVersion, PatchVersion)
+#endif

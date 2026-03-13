@@ -26,5 +26,8 @@ OperatorStringToID = {
     '==': EQUAL,
     '>=': MINIMUM,
     '<=': MAXIMUM,
-    '[]': WITHIN
+    '[]': WITHIN,
+    'OLDER_THAN': BELOW,
+    'NEWER_THAN': ABOVE,
+    'NEWER_THAN_OR_EQUAL': MINIMUM,
 }

@@ -12,13 +12,19 @@ I use these macros and prebuild scripts on my own plugins across various version
 
 [`VersionMacros.h`](Source/VersionMacros/Public/VersionMacros.h) provides the following macros for engine version comparisons.
 
-```
+```c
+// Simplified helper macros
 UE_VERSION_BELOW(major, minor)
 UE_VERSION_ABOVE(major, minor)
 UE_VERSION_EQUAL(major, minor)
 UE_VERSION_MINIMUM(major, minor)
 UE_VERSION_MAXIMUM(major, minor)
 UE_VERSION_WITHIN(major_min, minor_min, major_max, minor_max)
+
+// Backported helper macros from Misc/EngineVersionComparison.h
+UE_VERSION_OLDER_THAN(major,minor,patch) // otherwise only available in UE 4.19+
+UE_VERSION_NEWER_THAN(major,minor,patch) // otherwise only available in UE 4.19+
+UE_VERSION_NEWER_THAN_OR_EQUAL(major,minor,patch) // otherwise only available in UE 5.6+
 ```
 My all-time favorites are `UE_VERSION_MINIMUM` and `UE_VERSION_MAXIMUM`, but I've used all of them at some point or another.
 
@@ -38,7 +44,7 @@ When configured in your `.uplugin` file, prebuild scripts will automatically exe
 
 ### Prebuild Features
 
-[`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) gives you options to take advantage of this, plus some other goodies:
+[`PrebuildConfig.py`](Resources/BuildScripts/PrebuildConfig.py) uses the `#if 1|0` hack to help you safely bypass preprocessor limitations in UnrealHeaderTool for version macros, plus some other goodies:
 
 - `MacroReplacements` is a dictionary where you can configure "fake" macros of the form `#if <0 or 1> // MY_CUSTOM_MACRO`. The prebuild script will automatically change matching code lines between `0` and `1` depending on your engine version or a constant value you've specified.
 - `CustomPrebuildHeaders` is a list of header file paths to auto-generate `MacroReplacements` for. It will only consider `#define` directives that use a constant (`1` or `0`) value, or the `UE_VERSION_*` macros seen in `VersionMacros.h`. It does not actually compile the header file, so complex macros that use arithmatic/logical operators or that depend on other headers (besides `VersionMacros.h`) will be ignored.

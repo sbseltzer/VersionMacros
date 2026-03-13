@@ -20,6 +20,7 @@
 $EngineVersionData = ((Get-Content "$Env:EngineDir/Build/Build.version") | ConvertFrom-JSON)
 $MajorVersion = $EngineVersionData.MajorVersion
 $MinorVersion = $EngineVersionData.MinorVersion
+$PatchVersion = $EngineVersionData.PatchVersion
 # Find the Python executable that ships with Unreal Editor.
 if ($MajorVersion -gt 4 -or $MinorVersion -ge 22)
 {
@@ -69,4 +70,5 @@ if (-Not (Test-Path "$PythonExe" -PathType Leaf))
 }
 $Env:UEMajorVersion = $MajorVersion
 $Env:UEMinorVersion = $MinorVersion
+$Env:UEPatchVersion = $PatchVersion
 & "$PythonExe" "$Env:PluginDir\Resources\BuildScripts\Prebuild.py"

@@ -362,10 +362,10 @@ compile_time_assert(!TEST_MACRO_CONST_BOOL);
 compile_time_assert(TEST_MACRO_CONST_BOOL);
 #endif
 
-#  if   0 // UE_VERSION_WITHIN( 4,26, 5, 4)
-compile_time_assert(UE_VERSION_WITHIN( 4,26, 5, 4));
+#  if   1 // UE_VERSION_WITHIN( 4,26, 5, 7)
+compile_time_assert(UE_VERSION_WITHIN( 4,26, 5, 7));
 #  else
-compile_time_assert(!UE_VERSION_WITHIN( 4,26, 5, 4));
+compile_time_assert(!UE_VERSION_WITHIN( 4,26, 5, 7));
 #  endif
 
 #  if   0 // TEST_MACRO_C

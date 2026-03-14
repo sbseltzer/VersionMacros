@@ -99,7 +99,8 @@ EngineVersion = MajorVersion + "." + MinorVersion + "." + PatchVersion
 def version_to_int(major, minor, patch=None):
     return int(major)*1000000+int(minor)*1000+int(patch or 0)
 
-EngineVersionAsInt = version_to_int(MajorVersion, MinorVersion, PatchVersion)
+EngineVersionAsInt = version_to_int(MajorVersion, MinorVersion)
+EngineVersionAsIntWithPatch = version_to_int(MajorVersion, MinorVersion, PatchVersion)
 
 def do_comparison(version, compare):
     # If version is a non-string (i.e. float or decimal) convert to string so we can separate the major/minor versions
@@ -115,20 +116,21 @@ def do_comparison(version, compare):
     minor = parts[1]
     patch = len(parts) == 3 and parts[2] or None
     version_as_int = version_to_int(major, minor, patch)
+    current_version = patch is None and EngineVersionAsInt or EngineVersionAsIntWithPatch 
     compare_id = (type(compare) == int) and compare or OperatorStringToID.get(compare)
     if compare_id == None:
         print_error_and_exit("Invalid comparison operator '" + compare + "'!")
     # Old versions of Unreal use Python 2, which doesn't have match statements, so we use if-else here
     if compare_id == EQUAL:
-        return EngineVersionAsInt == version_as_int
+        return current_version == version_as_int
     elif compare_id == BELOW:
-        return EngineVersionAsInt < version_as_int
+        return current_version < version_as_int
     elif compare_id == MAXIMUM:
-        return EngineVersionAsInt <= version_as_int
+        return current_version <= version_as_int
     elif compare_id == ABOVE:
-        return EngineVersionAsInt > version_as_int
+        return current_version > version_as_int
     elif compare_id == MINIMUM:
-        return EngineVersionAsInt >= version_as_int
+        return current_version >= version_as_int
     print_error_and_exit("Unhandled comparison operator: " + compare)
     return False
 

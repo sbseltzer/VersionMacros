@@ -146,6 +146,10 @@ compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,22,3, <=, 4,23,1));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,21,2, <=, 4,22,3));
 compile_time_assert(UE_VERSION_COMPARE_EXPLICIT(4,20,3, <=, 4,21,2));
 
+compile_time_assert(UE_VERSION_NEWER_THAN_OR_EQUAL(5,7,0) == UE_VERSION_MINIMUM(5,7));
+compile_time_assert(UE_VERSION_NEWER_THAN(5,7,ENGINE_PATCH_VERSION) == UE_VERSION_ABOVE(5,7));
+compile_time_assert(UE_VERSION_OLDER_THAN(5,7,0) == UE_VERSION_BELOW(5,7));
+
 //==============================================================================================
 // Test Prebuild Scripts (TObjectPtr replacements)
 // If the following fails to compile, it means something is wrong with the prebuild scripts

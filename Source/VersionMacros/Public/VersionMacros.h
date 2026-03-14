@@ -39,7 +39,7 @@
 #endif
 
 // Express version as a simple polynomial for easy comparisons.
-#define UE_VERSION_TO_INT(major, minor, patch) ((major)*1000000+(minor)*1000+(patch < 0 ? 0 : patch))
+#define UE_VERSION_TO_INT(major, minor, patch) ((major)*1000000+(minor)*1000+((patch) < 0 ? 0 : (patch)))
 // Explicit comparison between two version tuples.
 #define UE_VERSION_COMPARE_EXPLICIT(major1, minor1, patch1, op, major2, minor2, patch2) (UE_VERSION_TO_INT(major1, minor1, patch1) op UE_VERSION_TO_INT(major2, minor2, patch2))
 // Comparisons against current version with a specified operator.

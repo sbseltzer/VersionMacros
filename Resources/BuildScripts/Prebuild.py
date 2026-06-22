@@ -20,7 +20,7 @@
 # Avoid importing any nonstandard Python libraries.
 # All Python code must be forward/backward compatible between Python versions that ship with each Unreal Engine version.
 # Version Reference:
-#   UE 5.4-5.7 = Python 3.11.8
+#   UE 5.4-5.8 = Python 3.11.8
 #   UE 5.0-5.3 = Python 3.9.7
 #   UE 4.26-4.27 = Python 3.7.7
 #   UE 4.19-4.25 = Python 2.7.14
